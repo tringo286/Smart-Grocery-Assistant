@@ -1,8 +1,7 @@
 // Import the functions and types you need from the SDKs
-import { getAnalytics } from "firebase/analytics";
 import { FirebaseApp, initializeApp } from "firebase/app";
 
-// Your web app's Firebase configuration
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyBF8uLFQVNb_vU4a9jRjEx2eDa2K_qmZck",
   authDomain: "pantrypal-af9e6.firebaseapp.com",
@@ -15,4 +14,19 @@ const firebaseConfig = {
 
 // Initialize Firebase
 export const app: FirebaseApp = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+
+// Lazy load analytics only on supported web environments
+if (typeof window !== "undefined") {
+  import("firebase/analytics").then(({ getAnalytics, isSupported }) => {
+    isSupported().then((supported) => {
+      if (supported) {
+        try {
+          getAnalytics(app);
+        } catch (err) {
+          // Optional: log error during dev
+          // console.warn("Analytics init error:", err);
+        }
+      }
+    });
+  });
+}

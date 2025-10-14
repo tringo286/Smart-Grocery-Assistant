@@ -7,9 +7,9 @@ export default function GetStartedScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Get Started</Text>
+      <Text style={styles.title}>PantryPal</Text>
       <Text style={styles.subtitle}>
-        Create an account or log in to continue
+          Track groceries, control budget, get meal suggestions
       </Text>
 
       <TouchableOpacity
