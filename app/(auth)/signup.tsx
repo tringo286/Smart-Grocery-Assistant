@@ -1,30 +1,61 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 import React, { useState } from "react";
 import {
-  Alert,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { app } from "../../firebaseConfig";
 const auth = getAuth(app);
 
 export default function SignUpScreen() {
   const router = useRouter(); 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [errorFields, setErrorFields] = useState<{ email?: boolean; password?: boolean, confirmPassword?: boolean}>({});
 
   const handleSignUp = async () => {
-    if (!email || !password || !confirmPassword) {
-      Alert.alert("Error", "Please fill in all fields.");
+    setError(null);
+    setErrorFields({});
+
+    let hasError = false;    
+
+    // Validate input
+    if (!email) {
+      hasError = true;
+      setErrorFields((prev) => ({ ...prev, email: true }));
+    }
+    if (!password) {
+      hasError = true;
+      setErrorFields((prev) => ({ ...prev, password: true }));
+    }
+    if (!confirmPassword) {
+      hasError = true;
+      setErrorFields((prev) => ({ ...prev, confirmPassword: true }));
+    }
+
+    if (hasError) {
+      setError("Please fill in all required fields.");
       return;
     }
+
+     // Validate password match, highlight both fields if mismatch
     if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match.");
+      setError("Passwords do not match.");
+      setErrorFields((prev) => ({
+        ...prev,
+        password: true,
+        confirmPassword: true
+      }));
       return;
     }
 
@@ -35,96 +66,238 @@ export default function SignUpScreen() {
         password
       );
       const user = userCredential.user;
-      console.log("User registered:", user);
-      Alert.alert("Success", "Account created!");
-      router.replace("/(auth)/login");
+      router.replace("/login");
     } catch (error: any) {
-      const errorMessage = error.message;
-      Alert.alert("Registration Failed", errorMessage);
+      const code = error.code;
+
+      // Customize common Firebase error messages
+      let errorMessage = "Sign up failed. Please try again.";
+      if (code === "auth/invalid-credential" || code === "auth/wrong-password") {
+        errorMessage = "Invalid email or password.";
+        setErrorFields({ email: true, password: true });
+      } else if (code === "auth/user-disabled") {
+        errorMessage = "This account has been disabled.";
+      } else if (code === "auth/invalid-email") {
+        errorMessage = "Invalid email format.";
+        setErrorFields({ email: true });
+      } else if (code === "auth/user-not-found") {
+        errorMessage = "No account found with this email.";
+        setErrorFields({ email: true });
+      } else if (code === "auth/email-already-in-use") {
+        errorMessage = "Email is already registered.";
+        setErrorFields({ email: true });
+      }
+
+      setError(errorMessage);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Create Account</Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>PantryPal</Text>
+        <Text style={styles.headerSubtitle}>
+          Sign up to save money, reduce waste,{'\n'}and simplify meal planning
+        </Text>
+      </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
+      {/* Sign Up Form */}
+        <View style={styles.form}>
+          <Text style={styles.formTitle}>Sign up</Text>          
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+          <Text style={[styles.label, { marginTop: 0 }]}>Email</Text>
+            <View
+              style={[
+                styles.passwordContainer,
+                errorFields.password && styles.inputError
+              ]}
+            >
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={setEmail}
+              placeholderTextColor="#A3A3A3"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm Password"
-        secureTextEntry
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-      />
+          <Text style={[styles.label, { marginTop: 0 }]}>Password</Text>
+          <View
+            style={[
+              styles.passwordContainer,
+              errorFields.password && styles.inputError
+            ]}
+          >
+            <TextInput
+              style={[styles.input, { flex: 1, marginBottom: 0 }]}
+              placeholder="Enter your password"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+              placeholderTextColor="#A3A3A3"
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeIcon}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                size={22}
+                color="#606060"
+              />
+            </TouchableOpacity>
+          </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-        <Text style={styles.buttonText}>Sign Up</Text>
-      </TouchableOpacity>
+          <Text style={[styles.label, { marginTop: 0 }]}>Confirm Password</Text>
+          <View
+            style={[
+              styles.passwordContainer,
+              errorFields.confirmPassword && styles.inputError
+            ]}
+          >
+            <TextInput
+              style={[styles.input, { flex: 1, marginBottom: 0 }]}
+              placeholder="Enter your confirm password"
+              secureTextEntry={!showConfirmPassword}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholderTextColor="#A3A3A3"
+            />
+            <TouchableOpacity
+              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              style={styles.eyeIcon}
+            >
+              <Ionicons
+                name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                size={22}
+                color="#606060"
+              />
+            </TouchableOpacity>
+          </View>     
 
-      <TouchableOpacity onPress={() => router.push("/login")}>
-        <Text style={styles.linkText}>Already have an account? Log in</Text>
-      </TouchableOpacity>
+          {/* Error Message */}
+          {error && <Text style={styles.errorText}>{error}</Text>}
+
+          <TouchableOpacity
+            style={styles.signupButton}
+            onPress={handleSignUp}
+          >
+            <Text style={styles.signupButtonText}>Sign up</Text>
+          </TouchableOpacity>         
+
+          {/* Log In Link */}
+          <View style={styles.loginContainer}>
+            <Text style={styles.loginText}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => router.push("/login")}>
+              <Text style={styles.loginLink}>Log In</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    flex: 1,    
     backgroundColor: "#fff",
-    padding: 20,
   },
-  title: {
+  header: {
+    backgroundColor: "#36AF27",         
+    paddingVertical: 30,
+    paddingHorizontal: 24,
+    minHeight: 160,
+  },
+  headerTitle: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 10,
+  },
+  headerSubtitle: {
+    color: "#fff",
+    fontSize: 17,
+    lineHeight: 24,
+  },
+  form: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+  },
+  formTitle: {
     fontSize: 28,
     fontWeight: "bold",
     marginBottom: 30,
-    color: "#333",
+    color: "#212121",
+  },
+  label: {
+    fontSize: 16,
+    color: "#222",
+    marginBottom: 20,
   },
   input: {
-    width: "100%",
-    height: 50,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 15,
+    backgroundColor: "#f1f1f1",
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     fontSize: 16,
+    color: "#222",
+    marginBottom: 0,
   },
-  button: {
-    width: "100%",
-    height: 50,
-    backgroundColor: "#007bff",
-    borderRadius: 8,
-    justifyContent: "center",
+  inputError: {
+    borderColor: "#E53935",
+  },
+  passwordContainer: {
+    flexDirection: "row",
     alignItems: "center",
-    marginVertical: 10,
+    backgroundColor: "#f1f1f1",
+    borderRadius: 10,
+    paddingHorizontal: 0,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "transparent",
   },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
+  eyeIcon: {
+    position: "absolute",
+    right: 16,
+    top: 12,
   },
-  linkText: {
+  errorText: {
+    color: "#E53935",
+    fontSize: 14,
     marginTop: 10,
-    color: "#007bff",
+    marginBottom: 5,
+  },
+  signupButton: {
+    backgroundColor: "#36AF27",
+    borderRadius: 28,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+    marginTop: 32,
+    marginBottom: 18,
+  },
+  signupButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 19,
+  },
+  loginContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 10,
+  },
+  loginText: {
+    color: "#888",
     fontSize: 16,
+  },
+  loginLink: {
+    color: "#36AF27",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
