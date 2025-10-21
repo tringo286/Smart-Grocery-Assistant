@@ -1,7 +1,9 @@
 // Import the functions and types you need from the SDKs
-import { FirebaseApp, initializeApp } from "firebase/app";
+import { FirebaseApp, getApp, getApps, initializeApp } from "firebase/app";
+import { initializeAuth, inMemoryPersistence } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
-// Firebase config
+// Firebase configuration (replace with your own project’s credentials)
 const firebaseConfig = {
   apiKey: "AIzaSyBF8uLFQVNb_vU4a9jRjEx2eDa2K_qmZck",
   authDomain: "pantrypal-af9e6.firebaseapp.com",
@@ -9,13 +11,21 @@ const firebaseConfig = {
   storageBucket: "pantrypal-af9e6.firebasestorage.app",
   messagingSenderId: "680391885089",
   appId: "1:680391885089:web:3920a713c2b02e646ebe60",
-  measurementId: "G-WCYC6RPFMJ"
+  measurementId: "G-WCYC6RPFMJ",
 };
 
-// Initialize Firebase
-export const app: FirebaseApp = initializeApp(firebaseConfig);
+// Guard initialization to prevent reloading issues (common in Expo)
+const app: FirebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Lazy load analytics only on supported web environments
+// Initialize Firebase Auth with in-memory persistence (no session persistence)
+const auth = initializeAuth(app, {
+  persistence: inMemoryPersistence,
+});
+
+// Initialize Firestore
+const firestore = getFirestore(app);
+
+// Lazy-load Analytics for supported web environments
 if (typeof window !== "undefined") {
   import("firebase/analytics").then(({ getAnalytics, isSupported }) => {
     isSupported().then((supported) => {
@@ -23,10 +33,13 @@ if (typeof window !== "undefined") {
         try {
           getAnalytics(app);
         } catch (err) {
-          // Optional: log error during dev
-          // console.warn("Analytics init error:", err);
+          // Optional: handle analytics errors
+          // console.warn("Analytics initialization failed:", err);
         }
       }
     });
   });
 }
+
+// Export initialized modules for use in your app
+export { app, auth, firestore };

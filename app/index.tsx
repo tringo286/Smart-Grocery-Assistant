@@ -27,6 +27,7 @@ export default function GetStartedScreen() {
         >
           <View style={styles.buttonContent}> 
             <Text style={styles.buttonText}>Get Started</Text>
+
             <Entypo name="chevron-right" style={styles.buttonIcon} />
           </View>
         </TouchableOpacity>
@@ -41,6 +42,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 20,
     justifyContent: 'space-between',
+    borderWidth : 0,
   },
   topSection: {
     alignItems: "center",
@@ -82,7 +84,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-  },
+  },  
   buttonText: {
     color: "#fff",
     fontSize: 22,

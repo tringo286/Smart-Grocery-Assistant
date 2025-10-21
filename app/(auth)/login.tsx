@@ -10,7 +10,7 @@ import {
   View
 } from "react-native";
 import { app } from "../../firebaseConfig";
-  const auth = getAuth(app);
+const auth = getAuth(app);
 
 export default function LoginScreen() {
   const router = useRouter();
