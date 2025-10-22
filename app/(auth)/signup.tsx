@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth, updateProfile } from "firebase/auth";
 import React, { useState } from "react";
 import {
   StyleSheet,
@@ -21,7 +21,7 @@ export default function SignUpScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [errorFields, setErrorFields] = useState<{ email?: boolean; password?: boolean, confirmPassword?: boolean}>({});
+  const [errorFields, setErrorFields] = useState<{ name?: boolean; email?: boolean; password?: boolean, confirmPassword?: boolean}>({});
 
   const handleSignUp = async () => {
     setError(null);
@@ -30,6 +30,10 @@ export default function SignUpScreen() {
     let hasError = false;    
 
     // Validate input
+    if (!name) {
+      hasError = true;
+      setErrorFields((prev) => ({ ...prev, name: true }));
+    }
     if (!email) {
       hasError = true;
       setErrorFields((prev) => ({ ...prev, email: true }));
@@ -60,7 +64,10 @@ export default function SignUpScreen() {
     }
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, {
+        displayName: name,
+      });
       router.replace("/login");
     } catch (error: any) {
       const code = error.code;
@@ -81,6 +88,9 @@ export default function SignUpScreen() {
       } else if (code === "auth/email-already-in-use") {
         errorMessage = "Email is already registered.";
         setErrorFields({ email: true });
+      } else if (code === "auth/weak-password") {
+        errorMessage = "Password should be at least 6 characters.";
+        setErrorFields({ password: true });
       }
 
       setError(errorMessage);
@@ -99,13 +109,29 @@ export default function SignUpScreen() {
 
       {/* Sign Up Form */}
         <View style={styles.form}>
-          <Text style={styles.formTitle}>Sign up</Text>          
+          <Text style={styles.formTitle}>Sign up</Text>    
+          
+          <Text style={[styles.label, { marginTop: 0 }]}>Name</Text>
+            <View
+              style={[
+                styles.passwordContainer,
+                errorFields.name && styles.inputError
+              ]}
+            >
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your name"
+              value={name}
+              onChangeText={setName}
+              placeholderTextColor="#A3A3A3"
+            />
+          </View>
 
           <Text style={[styles.label, { marginTop: 0 }]}>Email</Text>
             <View
               style={[
                 styles.passwordContainer,
-                errorFields.password && styles.inputError
+                errorFields.email && styles.inputError
               ]}
             >
             <TextInput
@@ -220,18 +246,18 @@ const styles = StyleSheet.create({
   form: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 28,
+    paddingTop: 20,
   },
   formTitle: {
     fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 30,
+    marginBottom: 20,
     color: "#212121",
   },
   label: {
     fontSize: 16,
     color: "#222",
-    marginBottom: 20,
+    marginBottom: 10,
   },
   input: {
     backgroundColor: "#f1f1f1",
@@ -251,7 +277,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f1f1f1",
     borderRadius: 10,
     paddingHorizontal: 0,
-    marginBottom: 20,
+    marginBottom: 18,
     borderWidth: 1,
     borderColor: "transparent",
   },
@@ -273,8 +299,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 16,
-    marginTop: 32,
-    marginBottom: 18,
+    marginTop: 20,
+    marginBottom: 15,
   },
   signupButtonText: {
     color: "#fff",
@@ -284,7 +310,7 @@ const styles = StyleSheet.create({
   loginContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 10,
+    marginTop: 5,
   },
   loginText: {
     color: "#888",
