@@ -1,7 +1,7 @@
-import { Ionicons, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { FontAwesome, Ionicons, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { getAuth, signOut } from "firebase/auth";
-import { addDoc, collection, onSnapshot, orderBy, query, Timestamp, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, Timestamp, updateDoc, where } from "firebase/firestore";
 import React, { useState } from "react";
 import { Alert, FlatList, Image, KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { app, firestore } from "../firebaseConfig";
@@ -16,12 +16,20 @@ type GroceryList = {
 };
 
 export default function ListsScreen() {
-  const router = useRouter();
-  const [modalVisible, setModalVisible] = useState(false);  
+  const router = useRouter()
+  const [newListModaVisible, setNewListModaVisible] = useState(false);  
   const [newListName, setNewListName] = useState("");
   const [lists, setLists] = useState<GroceryList[]>([]);
   const [optionsModalVisible, setOptionsModalVisible] = useState(false);
   const [selectedList, setSelectedList] = useState<GroceryList | null>(null);
+  const [renameModalVisible, setRenameModalVisible] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
+
+  const openRenameModal = () => {
+    setRenameModalVisible(true);
+    setOptionsModalVisible(false);
+    setRenameValue(selectedList?.name || "");
+  };
 
   const handleLogout = async () => {
     try { 
@@ -33,6 +41,7 @@ export default function ListsScreen() {
     }
   };
 
+  // Handler functions for Creating a New List
   const handleSaveNewList = async () => {
     try {
       const user = auth.currentUser; // Access the current user
@@ -44,7 +53,7 @@ export default function ListsScreen() {
           userId: user.uid, // Set userId to the current user's UID
         });
 
-        setModalVisible(false); // Close modal
+        setNewListModaVisible(false); // Close modal
         setNewListName("");     // Reset input field
       } else {
         Alert.alert("Error", "User is not authenticated.");
@@ -58,21 +67,49 @@ export default function ListsScreen() {
     }
   };
 
-  // Handler functions for Rename, Duplicate, Delete
-  const handleRename = () => {
-    // Implement rename logic here
-    setOptionsModalVisible(false);
+  // Handler functions for Renaming a List
+  const handleRename = async (newName: string) => {
+    if (!selectedList) return;
+    try {
+      const docRef = doc(firestore, "lists", selectedList.id);
+      await updateDoc(docRef, { name: newName.trim() });
+      setRenameModalVisible(false);
+      Alert.alert("List renamed!");
+    } catch (error: any) {
+      Alert.alert("Rename Failed", error.message);
+    }
   };
 
-  const handleDuplicate = () => {
-    // Implement duplicate logic here
-    setOptionsModalVisible(false);
+  // Handler functions for Deleting a List
+  const handleDelete = async () => {
+    if (!selectedList) return;
+    try {
+      await deleteDoc(doc(firestore, "lists", selectedList.id));
+      setOptionsModalVisible(false);
+      Alert.alert("List deleted!");
+    } catch (error: any) {
+      Alert.alert("Delete Failed", error.message);
+    }
   };
 
-  const handleDelete = () => {
-    // Implement delete logic here
-    setOptionsModalVisible(false);
+  // Handler functions for Duplicating a List
+  const handleDuplicate = async () => {
+    if (!selectedList) return;
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error("User not authenticated");
+      await addDoc(collection(firestore, "lists"), {
+        name: selectedList.name + " (Copy)",
+        createdAt: Timestamp.fromDate(new Date()),
+        userId: user.uid,
+      });
+      setOptionsModalVisible(false);
+      Alert.alert("List duplicated!");
+    } catch (error: any) {
+      Alert.alert("Duplicate Failed", error.message);
+    }
   };
+
 
   React.useEffect(() => {
     const user = auth.currentUser; // Access the current user using auth()
@@ -128,7 +165,7 @@ export default function ListsScreen() {
           <FlatList
             data={lists}
             keyExtractor={(item) => item.id}
-            contentContainerStyle={{ paddingBottom: 18 }}
+            contentContainerStyle={{ paddingBottom: 110 }}
             renderItem={({ item }) => (
               <View style={styles.listCard}>
                 <View>
@@ -151,7 +188,7 @@ export default function ListsScreen() {
 
         <TouchableOpacity
           style={styles.newListButton}
-          onPress={() => setModalVisible(true)}
+          onPress={() => setNewListModaVisible(true)}
         >
           <Ionicons name="add" size={30} color="#fff" />
           <Text style={styles.newListText}>New List</Text>
@@ -162,8 +199,8 @@ export default function ListsScreen() {
       <Modal
         animationType="slide"
         transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
+        visible={newListModaVisible}
+        onRequestClose={() => setNewListModaVisible(false)}
       >
         <KeyboardAvoidingView
           enabled
@@ -172,8 +209,8 @@ export default function ListsScreen() {
         >
           <View style={styles.modalContainer}>
             <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setModalVisible(false)}
+              style={styles.modalCloseButton}
+              onPress={() => setNewListModaVisible(false)}
             >
               <Ionicons name="close" size={32} color="#979797" />
             </TouchableOpacity>
@@ -196,59 +233,79 @@ export default function ListsScreen() {
         </KeyboardAvoidingView>
       </Modal>
       
-      {/* Modal for Setting */}
+      {/* Modal for Options */}
       <Modal
         animationType="slide"
         transparent={true}
         visible={optionsModalVisible}
         onRequestClose={() => setOptionsModalVisible(false)}
       >
-        <View style={{
-          flex: 1,
-          justifyContent: "flex-end",
-          backgroundColor: "rgba(32,32,32,0.16)",
-        }}>
-          <View style={{
-            backgroundColor: "#fff",
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            padding: 20,
-            minHeight: 200,
-            position: "relative"
-          }}>
-            {/* X Close Icon at Top Left */}
+        <View style={styles.optionsModalOverlay}>
+          <View style={styles.optionsModalContainer}>
             <TouchableOpacity
-              style={{
-                position: "absolute",
-                top: 15,
-                right: 15,
-                zIndex: 2,
-                padding: 6,
-              }}
+              style={styles.modalCloseButton}
               onPress={() => setOptionsModalVisible(false)}
             >
               <Ionicons name="close" size={28} color="#979797" />
             </TouchableOpacity>
-            <TouchableOpacity style={{ paddingVertical: 16 }} onPress={handleRename}>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <TouchableOpacity style={styles.OptionButton} onPress={openRenameModal}>
+              <View style={styles.optionRow}>
                 <MaterialIcons name="edit" size={22} color="#222" />
-                <Text style={{ fontSize: 18, marginLeft: 16, color: "#222" }}>Rename</Text>
+                <Text style={styles.optionText}>Rename</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity style={{ paddingVertical: 16 }} onPress={handleDuplicate}>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <TouchableOpacity style={styles.OptionButton} onPress={handleDuplicate}>
+              <View style={styles.optionRow}>
                 <MaterialCommunityIcons name="content-copy" size={22} color="#222" />
-                <Text style={{ fontSize: 18, marginLeft: 16, color: "#222" }}>Duplicate</Text>
+                <Text style={styles.optionText}>Duplicate</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity style={{ paddingVertical: 16 }} onPress={handleDelete}>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <TouchableOpacity style={styles.OptionButton} onPress={handleDelete}>
+              <View style={styles.optionRow}>
                 <MaterialIcons name="delete" size={22} color="#dc3545" />
-                <Text style={{ fontSize: 18, marginLeft: 16, color: "#dc3545" }}>Delete</Text>
+                <Text style={[styles.optionText, { color: "#dc3545" }]}>Delete</Text>
               </View>
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+      
+      {/* Modal for Rename */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={renameModalVisible}
+        onRequestClose={() => setRenameModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          enabled
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalWrapper}
+        >
+          <View style={styles.modalContainer}>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setRenameModalVisible(false)}
+            >
+              <Ionicons name="close" size={32} color="#979797" />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Rename list</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="List Name"
+              value={renameValue}
+              onChangeText={setRenameValue}
+              placeholderTextColor="#999"
+            />
+            <TouchableOpacity
+              style={styles.modalSaveButton}
+              onPress={() => handleRename(renameValue)}
+              disabled={!renameValue.trim()}
+            >
+              <Text style={styles.modalSaveText}>Save</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Tab Bar */}
@@ -266,8 +323,8 @@ export default function ListsScreen() {
           <Text style={styles.tabLabel}>Recipes</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tabItem}>
-          <MaterialCommunityIcons name="chart-line" size={26} color="#6c6c6c" />
-          <Text style={styles.tabLabel}>Summary</Text>
+          <FontAwesome name="user" size={30} color="#6c6c6c" />
+          <Text style={styles.tabLabel}>Profile</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -327,8 +384,9 @@ const styles = StyleSheet.create({
     marginBottom: 50,
   },
   newListButton: {
-    marginTop: 100,
-    marginLeft: 120,
+    position: "absolute",
+    bottom: 90, 
+    right: 20,   
     backgroundColor: "#22c55e",
     paddingHorizontal: 30,
     paddingVertical: 13,
@@ -336,12 +394,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 9,
+  zIndex: 10,
   },
   newListText: {  
     color: "#fff",
     fontWeight: "bold",
     fontSize: 19,
   },
+
+  // List Cards
   listCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -368,20 +429,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#B2B2B2",
   },
+
+  // Modal for New List
   modalWrapper: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: "flex-end",
     backgroundColor: "rgba(32,32,32,0.4)",
   },
   modalContainer: {
-    width: "95%",
+    width: "100%",
     minHeight: 210,
     borderRadius: 32,
     backgroundColor: "#fff",
     paddingHorizontal: 18,
     paddingTop: 28,
-    paddingBottom: 18,
+    paddingBottom: 40,
     alignItems: "center",
     shadowColor: "#999",
     shadowOffset: { width: 0, height: 6 },
@@ -389,7 +451,7 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 10,
   },
-  closeButton: {
+  modalCloseButton: {
     position: "absolute",
     top: 18,
     right: 18,
@@ -407,8 +469,6 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: "#f8f8f8",
     borderRadius: 11,
-    borderColor: "#36AF27",
-    borderWidth: 2,
     fontSize: 18,
     paddingVertical: 13,
     paddingHorizontal: 15,
@@ -437,6 +497,38 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingBottom: 10,
   },
+
+  // Modal for Options
+  optionsModalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(32,32,32,0.4)",
+  },
+  optionsModalContainer: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    minHeight: 200,
+    position: "relative",
+  },
+  OptionButton: {
+    paddingVertical: 16,
+  },
+  optionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  optionText: {
+    fontSize: 18,
+    marginLeft: 16,
+    color: "#222",
+  },
+  deleteText: {
+    color: "#dc3545",
+  },
+
+  // Tab Bar
   tabItem: {
     alignItems: "center",
     justifyContent: "center",
