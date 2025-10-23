@@ -228,9 +228,9 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: "#36AF27",         
-    paddingVertical: 30,
+    paddingVertical: 20,
     paddingHorizontal: 24,
-    minHeight: 160,
+    minHeight: 140,
   },
   headerTitle: {
     fontSize: 30,
@@ -249,9 +249,9 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   formTitle: {
-    fontSize: 28,
+    fontSize: 25,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 18,
     color: "#212121",
   },
   label: {
