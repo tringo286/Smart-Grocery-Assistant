@@ -1,9 +1,10 @@
-import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { EmailAuthProvider, getAuth, reauthenticateWithCredential, signOut, updatePassword, updateProfile } from "firebase/auth";
 import React, { useState } from "react";
-import { Alert, KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { app } from "../firebaseConfig";
+import { InputModal } from "./components/InputModal";
 import { TabBar } from "./components/TabBar";
 
 export default function AccountScreen() {
@@ -160,52 +161,17 @@ export default function AccountScreen() {
       </View>
 
       {/* Name/Password Edit Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
+      <InputModal
         visible={editModalVisible}
-        onRequestClose={() => setEditModalVisible(false)}
-      >
-        <KeyboardAvoidingView
-          enabled
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.modalWrapper}
-        >
-          <View style={styles.modalContainer}>
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setEditModalVisible(false)}
-            >
-              <Ionicons name="close" size={32} color="#979797" />
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>
-              {modalMode === 'name' ? 'Edit Name' : 'Change Password'}
-            </Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder={
-                modalMode === 'name'
-                  ? "Your Name"
-                  : "New Password"
-              }
-              value={editValue}
-              onChangeText={setEditValue}
-              placeholderTextColor="#999"
-              keyboardType="default"
-              autoCapitalize={modalMode === 'name' ? "words" : "none"}
-              secureTextEntry={modalMode === 'password'}
-            />
-            <TouchableOpacity
-              style={styles.modalSaveButton}
-              onPress={handleSaveEdit}
-              disabled={!editValue.trim()}
-            >
-              <Text style={styles.modalSaveText}>Save</Text>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
-
+        title={modalMode === 'name' ? 'Edit Name' : 'Change Password'}
+        placeholder={modalMode === 'name' ? 'Your Name' : 'New Password'}
+        value={editValue}
+        onChangeText={setEditValue}
+        onSave={handleSaveEdit}
+        onClose={() => setEditModalVisible(false)}
+        secureTextEntry={modalMode === 'password'}
+      />
+      
       {/* Tab Bar */}
       <TabBar
         activeTab="Profile"

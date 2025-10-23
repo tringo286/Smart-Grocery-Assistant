@@ -89,7 +89,6 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-
       <TabBar
         activeTab="Profile"
         onTabPress={(tab) => {
@@ -100,7 +99,6 @@ export default function ProfileScreen() {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {

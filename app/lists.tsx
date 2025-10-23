@@ -3,8 +3,9 @@ import { useRouter } from "expo-router";
 import { getAuth } from "firebase/auth";
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, Timestamp, updateDoc, where } from "firebase/firestore";
 import React, { useState } from "react";
-import { Alert, FlatList, Image, KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { app, firestore } from "../firebaseConfig";
+import { InputModal } from "./components/InputModal";
 import { TabBar } from "./components/TabBar";
 
 type GroceryList = {
@@ -100,7 +101,6 @@ export default function ListsScreen() {
     }
   };
 
-
   React.useEffect(() => {
     const user = auth.currentUser; // Access the current user using auth()
     if (!user) return; // Exit if no user is found
@@ -129,7 +129,6 @@ export default function ListsScreen() {
 
     return () => unsubscribe(); // Cleanup on unmount
   }, []);
-
 
   return (
     <View style={styles.container}>
@@ -181,42 +180,15 @@ export default function ListsScreen() {
       </View>
 
       {/* Modal for New List */}
-      <Modal
-        animationType="slide"
-        transparent={true}
+      <InputModal
         visible={newListModaVisible}
-        onRequestClose={() => setNewListModaVisible(false)}
-      >
-        <KeyboardAvoidingView
-          enabled
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.modalWrapper}
-        >
-          <View style={styles.modalContainer}>
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setNewListModaVisible(false)}
-            >
-              <Ionicons name="close" size={32} color="#979797" />
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Create a new list</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Grocery List"
-              value={newListName}
-              onChangeText={setNewListName}
-              placeholderTextColor="#999"
-            />
-            <TouchableOpacity
-              style={styles.modalSaveButton}
-              onPress={handleSaveNewList}
-              disabled={!newListName.trim()}
-            >
-              <Text style={styles.modalSaveText}>Save</Text>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+        title="Create a new list"
+        placeholder="Grocery List"
+        value={newListName}
+        onChangeText={setNewListName}
+        onSave={handleSaveNewList}
+        onClose={() => setNewListModaVisible(false)}
+      />
       
       {/* Modal for Options */}
       <Modal
@@ -238,7 +210,7 @@ export default function ListsScreen() {
                 <MaterialIcons name="edit" size={22} color="#222" />
                 <Text style={styles.optionText}>Rename</Text>
               </View>
-            </TouchableOpacity>
+            </TouchableOpacity> 
             <TouchableOpacity style={styles.OptionButton} onPress={handleDuplicate}>
               <View style={styles.optionRow}>
                 <MaterialCommunityIcons name="content-copy" size={22} color="#222" />
@@ -254,44 +226,19 @@ export default function ListsScreen() {
           </View>
         </View>
       </Modal>
-      
+
       {/* Modal for Rename */}
-      <Modal
-        animationType="slide"
-        transparent={true}
+      <InputModal
         visible={renameModalVisible}
-        onRequestClose={() => setRenameModalVisible(false)}
-      >
-        <KeyboardAvoidingView
-          enabled
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.modalWrapper}
-        >
-          <View style={styles.modalContainer}>
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setRenameModalVisible(false)}
-            >
-              <Ionicons name="close" size={32} color="#979797" />
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Rename list</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="List Name"
-              value={renameValue}
-              onChangeText={setRenameValue}
-              placeholderTextColor="#999"
-            />
-            <TouchableOpacity
-              style={styles.modalSaveButton}
-              onPress={() => handleRename(renameValue)}
-              disabled={!renameValue.trim()}
-            >
-              <Text style={styles.modalSaveText}>Save</Text>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+        title="Rename list"
+        placeholder="List Name"
+        value={renameValue}
+        onChangeText={setRenameValue}
+        onSave={() => {
+          handleRename(renameValue);
+        }}
+        onClose={() => setRenameModalVisible(false)}
+      />     
 
       {/* Tab Bar */}
       <TabBar
@@ -388,7 +335,6 @@ const styles = StyleSheet.create({
     margin: 12,
     paddingVertical: 16,
     paddingHorizontal: 16,
-    // Drop shadow (for iOS & Android)
     shadowColor: "#222",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -404,66 +350,6 @@ const styles = StyleSheet.create({
   listItemCount: {
     fontSize: 13,
     color: "#B2B2B2",
-  },
-
-  // Modal 
-  modalWrapper: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(32,32,32,0.4)",
-  },
-  modalContainer: {
-    width: "100%",
-    minHeight: 210,
-    borderRadius: 32,
-    backgroundColor: "#fff",
-    paddingHorizontal: 18,
-    paddingTop: 28,
-    paddingBottom: 40,
-    alignItems: "center",
-    shadowColor: "#999",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    elevation: 10,
-  },
-  modalCloseButton: {
-    position: "absolute",
-    top: 18,
-    right: 18,
-    zIndex: 1,
-  },
-  modalTitle: {
-    width: "100%",
-    textAlign: "left",
-    fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 22,
-    color: "#222",
-  },
-  modalInput: {
-    width: "100%",
-    backgroundColor: "#f8f8f8",
-    borderRadius: 11,
-    fontSize: 18,
-    paddingVertical: 13,
-    paddingHorizontal: 15,
-    marginBottom: 22,
-    color: "#222",
-  },
-  modalSaveButton: {
-    backgroundColor: "#36AF27",
-    borderRadius: 28,
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-    marginTop: 5,
-  },
-  modalSaveText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 19,
   },
 
   // Modal for Options
@@ -494,5 +380,11 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     color: "#dc3545",
+  },
+  modalCloseButton: {
+    position: "absolute",
+    top: 18,
+    right: 18,
+    zIndex: 1,
   },
 });
