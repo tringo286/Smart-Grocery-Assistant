@@ -1,12 +1,11 @@
-import { FontAwesome, Ionicons, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { getAuth, signOut } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, Timestamp, updateDoc, where } from "firebase/firestore";
 import React, { useState } from "react";
 import { Alert, FlatList, Image, KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { app, firestore } from "../firebaseConfig";
-
-const auth = getAuth(app);
+import { TabBar } from "./components/TabBar";
 
 type GroceryList = {
   id: string;
@@ -16,6 +15,7 @@ type GroceryList = {
 };
 
 export default function ListsScreen() {
+  const auth = getAuth(app);
   const router = useRouter()
   const [newListModaVisible, setNewListModaVisible] = useState(false);  
   const [newListName, setNewListName] = useState("");
@@ -29,16 +29,6 @@ export default function ListsScreen() {
     setRenameModalVisible(true);
     setOptionsModalVisible(false);
     setRenameValue(selectedList?.name || "");
-  };
-
-  const handleLogout = async () => {
-    try { 
-      await signOut(auth);
-      Alert.alert("Success", "You’ve been logged out.");
-      router.replace("/"); // Redirect to home or login screen
-    } catch (error: any) {
-      Alert.alert("Logout Failed", error.message);
-    }
   };
 
   // Handler functions for Creating a New List
@@ -147,11 +137,6 @@ export default function ListsScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Lists</Text>
       </View>
-
-      {/* Logout Button */}
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Log Out</Text>
-      </TouchableOpacity>
 
       {/* Main Content */}
       <View style={styles.body}>
@@ -309,24 +294,15 @@ export default function ListsScreen() {
       </Modal>
 
       {/* Tab Bar */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabItemActive}>
-          <MaterialIcons name="list" size={28} color="#36AF27" />
-          <Text style={styles.tabLabelActive}>Lists</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
-          <MaterialCommunityIcons name="warehouse" size={27} color="#6c6c6c" />
-          <Text style={styles.tabLabel}>Pantry</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
-          <Ionicons name="restaurant-outline" size={25} color="#6c6c6c" />
-          <Text style={styles.tabLabel}>Recipes</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
-          <FontAwesome name="user" size={30} color="#6c6c6c" />
-          <Text style={styles.tabLabel}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+      <TabBar
+        activeTab="Lists" // set dynamically per screen if needed
+        onTabPress={(tab) => {
+          if (tab === "Lists") return;
+          // if (tab === "Pantry") router.push("/pantry");
+          // if (tab === "Recipes") router.push("/recipes");
+          if (tab === "Profile") router.push("/profile");
+        }}
+      />
     </View>
   );
 }
@@ -385,8 +361,8 @@ const styles = StyleSheet.create({
   },
   newListButton: {
     position: "absolute",
-    bottom: 90, 
-    right: 20,   
+    bottom: 150, 
+    right: 50,   
     backgroundColor: "#22c55e",
     paddingHorizontal: 30,
     paddingVertical: 13,
@@ -430,7 +406,7 @@ const styles = StyleSheet.create({
     color: "#B2B2B2",
   },
 
-  // Modal for New List
+  // Modal 
   modalWrapper: {
     flex: 1,
     justifyContent: "flex-end",
@@ -489,14 +465,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 19,
   },
-  tabBar: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    height: 80,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingBottom: 10,
-  },
 
   // Modal for Options
   optionsModalOverlay: {
@@ -526,27 +494,5 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     color: "#dc3545",
-  },
-
-  // Tab Bar
-  tabItem: {
-    alignItems: "center",
-    justifyContent: "center",
-    flex: 1,
-  },
-  tabLabel: {
-    fontSize: 14,
-    color: "#6c6c6c",
-  },
-  tabItemActive: {
-    alignItems: "center",
-    justifyContent: "center",
-    flex: 1,
-    paddingVertical: 4,
-  },
-  tabLabelActive: {
-    fontSize: 14,
-    color: "#36AF27",
-    fontWeight: "bold",
   },
 });

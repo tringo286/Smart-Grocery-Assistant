@@ -1,24 +1,26 @@
-import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
+import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { getAuth } from "firebase/auth";
 import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { app } from "../firebaseConfig";
 import { TabBar } from "./components/TabBar";
 
 export default function ProfileScreen() {
-    const router = useRouter();
-    const auth = getAuth(app);
-    const [userName, setUserName] = useState<string>("");
+  const router = useRouter();
+  const auth = getAuth(app);
+  const [userName, setUserName] = useState<string>("");
+  const [appearanceModalVisible, setAppearanceModalVisible] = useState(false);
+  const [appearance, setAppearance] = useState<'light' | 'dark'>('light');
 
-    useFocusEffect(
-      React.useCallback(() => {
-        const user = auth.currentUser;
-        if (user) {
-          setUserName(user.displayName || user.email?.split("@")[0] || "User");
-        }
-      }, [])
-    );
+  useFocusEffect(
+    React.useCallback(() => {
+      const user = auth.currentUser;
+      if (user) {
+        setUserName(user.displayName || user.email?.split("@")[0] || "User");
+      }
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
@@ -35,7 +37,7 @@ export default function ProfileScreen() {
           <FontAwesome5 name="cog" size={22} color="#707070" style={styles.cardIcon}/>
           <Text style={styles.cardText}>Account</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardItem}>
+        <TouchableOpacity style={styles.cardItem} onPress={() => setAppearanceModalVisible(true)}>
           <MaterialIcons name="palette" size={22} color="#707070" style={styles.cardIcon} />
           <Text style={styles.cardText}>Appearance</Text>
         </TouchableOpacity>
@@ -44,9 +46,50 @@ export default function ProfileScreen() {
           <Text style={styles.cardText}>Summary</Text>
         </TouchableOpacity>
       </View>
-      {/* Add a spacer to prevent overlap */}
-      <View style={{ height: 200 }} />
-      {/* Tab Bar - outside the main scrolling content */}
+
+      {/* Modal for Appearance */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={appearanceModalVisible}
+        onRequestClose={() => setAppearanceModalVisible(false)}
+      >
+        <View style={styles.overlay}>
+          <View style={styles.modalContainer}>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setAppearanceModalVisible(false)}
+            >
+              <Ionicons name="close" size={28} color="#979797" />
+            </TouchableOpacity>
+            <Text style={styles.title}>Appearance</Text>
+            {/* Options */}
+            <TouchableOpacity
+              style={styles.option}
+            >
+              <Text style={styles.optionText}>Dark</Text>
+              <TouchableOpacity onPress={() => { setAppearance('dark') }}>
+                <View style={[styles.checkCircle, appearance === 'dark' && styles.checked]}>
+                  {appearance === 'dark' && <MaterialIcons name="check" size={24} color="#36AF27" />}
+                </View>
+              </TouchableOpacity>
+            </TouchableOpacity>
+
+             <TouchableOpacity
+              style={styles.option}
+            >
+              <Text style={styles.optionText}>Light</Text>
+              <TouchableOpacity onPress={() => { setAppearance('light') }}>
+                <View style={[styles.checkCircle, appearance === 'light' && styles.checked]}>
+                  {appearance === 'light' && <MaterialIcons name="check" size={24} color="#36AF27" />}
+                </View>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+
       <TabBar
         activeTab="Profile"
         onTabPress={(tab) => {
@@ -107,6 +150,56 @@ const styles = StyleSheet.create({
     marginLeft: 18,
     fontWeight: "500",
   },
+
+  // Modal for Appearance
+  overlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(32,32,32,0.4)",
+  },
+  modalContainer: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    padding: 24,
+    alignItems: "stretch",
+    minHeight: 210,
+  },
+  modalCloseButton: {
+    position: "absolute",
+    top: 18,
+    right: 18,
+    zIndex: 1,
+  },
+  title: {
+    fontSize: 21,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 13,
+    color: "#222",
+  },
+  option: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 16,
+  },
+  optionText: {
+    fontSize: 18,
+    color: "#222",
+    fontWeight: "400",
+  },
+  checkCircle: {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: "#eee",
+    borderWidth: 2, borderColor: "#ccc",
+    alignItems: "center", justifyContent: "center",
+  },
+  checked: {
+    backgroundColor: "#e6f8e2",
+    borderColor: "#36AF27",
+  },
+
   tabBar: {
     flexDirection: "row",
     backgroundColor: "#fff",
