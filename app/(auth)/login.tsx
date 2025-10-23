@@ -10,9 +10,10 @@ import {
   View
 } from "react-native";
 import { app } from "../../firebaseConfig";
-const auth = getAuth(app);
+import AuthHeader from "../components/AuthHeader";
 
 export default function LoginScreen() {
+  const auth = getAuth(app);
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -70,12 +71,10 @@ export default function LoginScreen() {
       <View style={styles.container}>
 
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>PantryPal</Text>
-        <Text style={styles.headerSubtitle}>
-          Welcome back! Log in to manage{"\n"}your groceries, budget, and meals.
-        </Text>
-      </View>
+      <AuthHeader
+        title="PantryPal"
+        subtitle="Welcome back! Log in to manage\nyour groceries, budget, and meals."
+      />
 
       {/* Login Form */}
       <View style={styles.form}>
@@ -150,24 +149,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-  },
-  header: {
-    backgroundColor: "#36AF27",         
-    paddingVertical: 30,
-    paddingHorizontal: 24,
-    minHeight: 160,
-    
-  },
-  headerTitle: {
-    fontSize: 30,
-    fontWeight: "bold",
-    color: "#fff",
-    marginBottom: 10,
-  },
-  headerSubtitle: {
-    color: "#fff",
-    fontSize: 17,
-    lineHeight: 25,
   },
   form: {
     flex: 1,

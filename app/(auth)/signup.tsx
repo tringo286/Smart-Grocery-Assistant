@@ -10,9 +10,10 @@ import {
   View
 } from "react-native";
 import { app } from "../../firebaseConfig";
-const auth = getAuth(app);
+import AuthHeader from "../components/AuthHeader";
 
 export default function SignUpScreen() {
+  const auth = getAuth(app);
   const router = useRouter(); 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -100,12 +101,10 @@ export default function SignUpScreen() {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>PantryPal</Text>
-        <Text style={styles.headerSubtitle}>
-          Sign up to save money, reduce waste,{'\n'}and simplify meal planning
-        </Text>
-      </View>
+      <AuthHeader
+        title="PantryPal"
+        subtitle={"Sign up to save money, reduce waste,\nand simplify meal planning"}
+      />
 
       {/* Sign Up Form */}
         <View style={styles.form}>
