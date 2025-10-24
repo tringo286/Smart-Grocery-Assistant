@@ -5,6 +5,7 @@ import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, Timesta
 import React, { useState } from "react";
 import { Alert, FlatList, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { app, firestore } from "../firebaseConfig";
+import Header from "./components/Header";
 import { InputModal } from "./components/InputModal";
 import { TabBar } from "./components/TabBar";
 
@@ -133,9 +134,7 @@ export default function ListsScreen() {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Lists</Text>
-      </View>
+      <Header title="My Lists"/>
 
       {/* Main Content */}
       <View style={styles.body}>
@@ -151,7 +150,10 @@ export default function ListsScreen() {
             keyExtractor={(item) => item.id}
             contentContainerStyle={{ paddingBottom: 110 }}
             renderItem={({ item }) => (
-              <View style={styles.listCard}>
+              <TouchableOpacity
+                  onPress={() => router.push({ pathname: "/list/[id]", params: { id: item.id } })}
+                  style={styles.listCard}
+                >
                 <View>
                   <Text style={styles.listName}>{item.name}</Text>
                   <Text style={styles.listItemCount}>0 item</Text>
@@ -164,7 +166,7 @@ export default function ListsScreen() {
                 >
                   <MaterialIcons name="more-vert" size={24} color="#595959" />
                 </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             )}
             style={{ width: "100%" }}
           />
@@ -259,16 +261,6 @@ const styles = StyleSheet.create({
     flex: 1,    
     backgroundColor: "#F1F0F0",
   },
-  header: {
-    padding: 20,
-    backgroundColor: "#fff",
-    borderBottomColor: "#eee",
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#161616",
-  },
   logoutButton: {
     position: "absolute",
     top: 20,
@@ -310,7 +302,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 150, 
     right: 50,   
-    backgroundColor: "#22c55e",
+    backgroundColor: "#36AF27",
     paddingHorizontal: 30,
     paddingVertical: 13,
     borderRadius: 999,

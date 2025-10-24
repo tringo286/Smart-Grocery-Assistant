@@ -225,23 +225,6 @@ const styles = StyleSheet.create({
     flex: 1,    
     backgroundColor: "#fff",
   },
-  header: {
-    backgroundColor: "#36AF27",         
-    paddingVertical: 20,
-    paddingHorizontal: 24,
-    minHeight: 140,
-  },
-  headerTitle: {
-    fontSize: 30,
-    fontWeight: "bold",
-    color: "#fff",
-    marginBottom: 10,
-  },
-  headerSubtitle: {
-    color: "#fff",
-    fontSize: 17,
-    lineHeight: 24,
-  },
   form: {
     flex: 1,
     paddingHorizontal: 24,

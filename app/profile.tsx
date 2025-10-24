@@ -4,6 +4,7 @@ import { getAuth } from "firebase/auth";
 import React, { useState } from "react";
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { app } from "../firebaseConfig";
+import Header from "./components/Header";
 import { TabBar } from "./components/TabBar";
 
 export default function ProfileScreen() {
@@ -25,11 +26,14 @@ export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>
-          Hello <Text style={styles.userName}>{userName}</Text>!
-        </Text>
-      </View>
+      <Header 
+          title={
+            <>
+              Hello <Text style={{ color: "#36AF27" }}>{userName}</Text>!
+            </>
+          }          
+      />
+
 
       {/* Profile Card */}
       <View style={styles.card}>
