@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { app } from "../../firebaseConfig";
 import AuthHeader from "../components/AuthHeader";
+import PrimaryButton from "../components/PrimaryButton";
 
 export default function LoginScreen() {
   const auth = getAuth(app);
@@ -125,12 +126,18 @@ export default function LoginScreen() {
         {error && <Text style={styles.errorText}>{error}</Text>}
 
         {/* Log In Button */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.loginButton}
           onPress={handleLogin}
         >
           <Text style={styles.loginButtonText}>Log in</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+
+        <PrimaryButton
+          text="Log in"              
+          width="100%"
+          onPress={handleLogin}
+        />
 
         {/* Sign Up Link */}  
         <View style={styles.signUpContainer}>
@@ -200,21 +207,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 5,
     marginBottom: 20,
-  },
-  loginButton: {
-    backgroundColor: "#36AF27",
-    borderRadius: 28,
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-    marginTop: 32,
-    marginBottom: 18,
-  },
-  loginButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 19,
   },
   signUpContainer: {
     flexDirection: "row",

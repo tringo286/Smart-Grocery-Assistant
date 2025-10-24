@@ -1,7 +1,7 @@
-import { Entypo } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import React from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
+import PrimaryButton from './components/PrimaryButton';
 
 export default function GetStartedScreen() {
   const router = useRouter();
@@ -20,17 +20,14 @@ export default function GetStartedScreen() {
         </Text>
       </View>
 
-      <View style={styles.bottomSection}>
-        <TouchableOpacity
-          style={styles.button}
+      <View style={styles.bottomSection}>        
+        <PrimaryButton
+          text="Get Started"
+          iconName="chevron-right"      
+          iconPosition="right"           
+          width="100%"
           onPress={() => router.push("/(auth)/login")}
-        >
-          <View style={styles.buttonContent}> 
-            <Text style={styles.buttonText}>Get Started</Text>
-
-            <Entypo name="chevron-right" style={styles.buttonIcon} />
-          </View>
-        </TouchableOpacity>
+        />
       </View>
     </View>
   );
@@ -72,27 +69,5 @@ const styles = StyleSheet.create({
   },
   bottomSection: {
     marginBottom: 80,
-  },
-  button: {
-    width: "100%",
-    backgroundColor: "#36AF27",
-    paddingVertical: 15,
-    borderRadius: 50,
-    alignItems: "center",
-  },
-  buttonContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },  
-  buttonText: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "600",
-    textTransform: "uppercase",
-  },
-  buttonIcon: {
-    fontSize: 30,
-    color: 'white',
   },
 });
