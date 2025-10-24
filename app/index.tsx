@@ -38,13 +38,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     padding: 20,
-    justifyContent: 'space-between',
-    borderWidth : 0,
+    justifyContent: 'space-around',
   },
   topSection: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 90,
+    marginTop: 200,
     gap: 10,
   },
   heroImage: {
@@ -68,6 +67,6 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   bottomSection: {
-    marginBottom: 80,
+    marginBottom: 0,
   },
 });

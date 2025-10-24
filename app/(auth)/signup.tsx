@@ -103,7 +103,7 @@ export default function SignUpScreen() {
       {/* Header */}
       <AuthHeader
         title="PantryPal"
-        subtitle={"Sign up to save money, reduce waste,\nand simplify meal planning"}
+        subtitle={"Sign up to save money, reduce\nwaste,and simplify meal planning"}
       />
 
       {/* Sign Up Form */}
@@ -228,18 +228,18 @@ const styles = StyleSheet.create({
   form: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingTop: 30,
   },
   formTitle: {
-    fontSize: 25,
+    fontSize: 30,
     fontWeight: "bold",
     marginBottom: 18,
     color: "#212121",
   },
   label: {
-    fontSize: 16,
+    fontSize: 17,
     color: "#222",
-    marginBottom: 10,
+    marginBottom: 15,
   },
   input: {
     backgroundColor: "#f1f1f1",
@@ -248,7 +248,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 16,
     color: "#222",
-    marginBottom: 0,
   },
   inputError: {
     borderColor: "#E53935",
@@ -259,7 +258,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f1f1f1",
     borderRadius: 10,
     paddingHorizontal: 0,
-    marginBottom: 18,
+    marginBottom: 20,
     borderWidth: 1,
     borderColor: "transparent",
   },
@@ -282,7 +281,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 16,
     marginTop: 20,
-    marginBottom: 15,
+    marginBottom: 20,
   },
   signupButtonText: {
     color: "#fff",

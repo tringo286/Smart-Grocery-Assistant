@@ -74,7 +74,7 @@ export default function LoginScreen() {
       {/* Header */}
       <AuthHeader
         title="PantryPal"
-        subtitle="Welcome back! Log in to manage\nyour groceries, budget, and meals."
+        subtitle={"Welcome back! Log in to manage\nyour groceries, budget, and meals."}
       />
 
       {/* Login Form */}
@@ -125,14 +125,6 @@ export default function LoginScreen() {
         {/* Error Message */}
         {error && <Text style={styles.errorText}>{error}</Text>}
 
-        {/* Log In Button */}
-        {/* <TouchableOpacity
-          style={styles.loginButton}
-          onPress={handleLogin}
-        >
-          <Text style={styles.loginButtonText}>Log in</Text>
-        </TouchableOpacity> */}
-
         <PrimaryButton
           text="Log in"              
           width="100%"
@@ -163,15 +155,15 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   loginTitle: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "bold",
     marginBottom: 50,
     color: "#212121",
   },
   label: {
-    fontSize: 16,
+    fontSize: 17,
     color: "#222",
-    marginBottom: 15,
+    marginBottom: 20,
   },
   input: {
     backgroundColor: "#f1f1f1",
@@ -180,7 +172,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 16,
     color: "#222",
-    marginBottom: 10,
+    marginBottom: 20,
     borderWidth: 1,
     borderColor: "transparent", 
   },
@@ -211,7 +203,7 @@ const styles = StyleSheet.create({
   signUpContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 8,
+    marginTop: 12,
     gap: 5,
   },
   signUpText: {

@@ -1,24 +1,24 @@
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Header from "../components/Header";
 import { TabBar } from "../components/TabBar";
 
 export default function ListDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams(); // get list id param
-  // You may fetch the list details with 'id' here
 
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={28} color="#161616" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>New Grocery List</Text>
-        <MaterialIcons name="more-vert" size={28} color="#161616" />
-      </View>
+        <Header
+            title="My Lists"
+            titleAlign="center"
+            showLeftIcon
+            showRightIcon
+            onRightPress={() => console.log("Options")}
+        />
 
       {/* Illustration and messages */}
       <View style={styles.centeredContent}>

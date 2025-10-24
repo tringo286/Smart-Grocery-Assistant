@@ -4,6 +4,7 @@ import { EmailAuthProvider, getAuth, reauthenticateWithCredential, signOut, upda
 import React, { useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { app } from "../firebaseConfig";
+import Header from "./components/Header";
 import { InputModal } from "./components/InputModal";
 import { TabBar } from "./components/TabBar";
 
@@ -134,9 +135,11 @@ export default function AccountScreen() {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Account</Text>
-      </View>
+      <Header
+            title="Account"
+            titleAlign="center"
+            showLeftIcon
+        />
       {/* Card Options */}
       <View style={styles.card}>
         <TouchableOpacity style={styles.cardItem} onPress={openEditNameModal}>

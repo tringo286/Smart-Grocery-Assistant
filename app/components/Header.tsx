@@ -1,47 +1,112 @@
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useNavigation } from '@react-navigation/native';
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TextStyle, TouchableOpacity, View, ViewStyle } from "react-native";
 
 interface HeaderProps {
-  title: React.ReactNode;
-  showOptionsIcon?: boolean; // Optional icon on right
-  onOptionsPress?: () => void;
+  title: string;
+  titleAlign?: "left" | "center"; // choose title alignment
+  showLeftIcon?: boolean;
+  leftIconName?: keyof typeof Ionicons.glyphMap;
+  onLeftPress?: () => void;
+  showRightIcon?: boolean;
+  rightIconName?: keyof typeof MaterialIcons.glyphMap;
+  onRightPress?: () => void;
+  style?: ViewStyle;
+  titleStyle?: TextStyle;
 }
 
 const Header: React.FC<HeaderProps> = ({
   title,
-  showOptionsIcon = false,
-  onOptionsPress,
+  titleAlign = "left",
+  showLeftIcon = false,
+  leftIconName = "chevron-back",
+  onLeftPress,
+  showRightIcon = false,
+  rightIconName = "more-vert",
+  onRightPress,
+  style,
+  titleStyle,
 }) => {
+  const navigation = useNavigation();
+
   return (
-    <View style={styles.header}>
-      <Text style={styles.headerTitle}>{title}</Text>
-      {showOptionsIcon && (
-        <TouchableOpacity onPress={onOptionsPress} style={styles.optionsIcon}>
-          <MaterialIcons name="more-vert" size={28} color="#161616" />
-        </TouchableOpacity>
-      )}
+    <View style={[styles.header, style]}>
+      {/* Left Icon */}
+      <View style={styles.iconContainer}>
+        {showLeftIcon && (
+          <TouchableOpacity
+            onPress={onLeftPress || navigation.goBack}
+            style={styles.iconButton}
+          >
+            <Ionicons name={leftIconName} size={28} color="#161616" />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Title */}
+      <View
+        style={[
+          styles.titleContainer,
+          titleAlign === "center" && styles.centerTitleContainer,
+        ]}
+      >
+        <Text
+          style={[
+            styles.headerTitle,
+            titleAlign === "center" && styles.centerTitle,
+            titleStyle,
+          ]}
+          numberOfLines={1}
+        >
+          {title}
+        </Text>
+      </View>
+
+      {/* Right Icon */}
+      <View style={styles.iconContainer}>
+        {showRightIcon && (
+          <TouchableOpacity onPress={onRightPress} style={styles.iconButton}>
+            <MaterialIcons name={rightIconName} size={28} color="#161616" />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 };
 
+
 const styles = StyleSheet.create({
   header: {
+    zIndex: 10, 
+    paddingTop: 70,
     padding: 20,
     backgroundColor: "#fff",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
-    position: "relative",
+  },
+  iconContainer: {
+    width: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconButton: {
+    padding: 4,
+  },
+  titleContainer: {
+    flex: 1,
+  },
+  centerTitleContainer: {
+    alignItems: "center",
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "bold",
     color: "#161616",
   },
-  optionsIcon: {
-    position: "absolute",
-    right: 20,
+  centerTitle: {
+    textAlign: "center",
   },
 });
 

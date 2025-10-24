@@ -22,7 +22,8 @@ const AuthHeader: React.FC<AuthHeaderProps> = ({
 
 const styles = StyleSheet.create({
   header: {
-    paddingVertical: 30,
+    paddingTop: 60,
+    paddingBottom: 30,
     paddingHorizontal: 24,
     minHeight: 160,
   },
