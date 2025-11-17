@@ -170,7 +170,13 @@ export default function PantryScreen() {
 
   return (
     <View style={styles.container}>
-      <Header title="My Pantry" titleAlign="left" />
+      <Header 
+        title="My Pantry" 
+        titleAlign="left"
+        showRightIcon={true}
+        rightIconName="more-vert"
+        onRightPress={() => setOptionsModalVisible(true)}
+      />
       {hasItems ? (
         <Animated.ScrollView
           contentContainerStyle={styles.listContent}
