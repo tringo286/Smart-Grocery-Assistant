@@ -1,4 +1,4 @@
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import { collection, deleteDoc, doc, onSnapshot, updateDoc } from "firebase/firestore";
@@ -36,10 +36,9 @@ export default function PantryScreen() {
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<Partial<Item> | null>(null);
   const [editedValues, setEditedValues] = useState<Partial<Item>>({});
-
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [showDatePickerModal, setShowDatePickerModal] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(new Date());
+  const [optionsModalVisible, setOptionsModalVisible] = useState(false);  
 
   const onItemPress = (item: Item) => {
     setEditingItem(item);
@@ -86,6 +85,36 @@ export default function PantryScreen() {
       console.warn("Failed to delete item:", error);
       Alert.alert("Error", "Failed to delete item. Please try again.");
     }
+  }
+
+  async function handleDeleteAll() {
+    setOptionsModalVisible(false);
+    
+    Alert.alert(
+      "Delete All Items",
+      "Are you sure you want to delete all pantry items? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete All",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const deletePromises = pantryItems.map(item => 
+                deleteDoc(doc(firestore, "pantry", item.id))
+              );
+              await Promise.all(deletePromises);
+            } catch (error) {
+              console.error("Failed to delete all items:", error);
+              Alert.alert("Error", "Failed to delete all items. Please try again.");
+            }
+          }
+        }
+      ]
+    );
   }
 
   const hasItems = pantryItems.length > 0;
@@ -140,7 +169,7 @@ export default function PantryScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={styles.container}>
       <Header title="My Pantry" titleAlign="left" />
       {hasItems ? (
         <Animated.ScrollView
@@ -187,6 +216,37 @@ export default function PantryScreen() {
           <BodySubtitle>Tap the plus button to start adding products</BodySubtitle>
         </View>
       )}
+
+     {/* Options Bottom Sheet Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={optionsModalVisible}
+        onRequestClose={() => setOptionsModalVisible(false)}
+      >
+        <View style={styles.overlay}>
+          {/* overlay close tap */}
+          <TouchableOpacity 
+            style={styles.background} 
+            onPress={() => setOptionsModalVisible(false)} 
+          />   
+
+          <View style={styles.modalContainer}>
+            <TouchableOpacity 
+              style={styles.modalCloseButton} 
+              onPress={() => setOptionsModalVisible(false)}
+            >
+              <Ionicons name="close" size={32} color="#979797" />
+            </TouchableOpacity>
+
+            {/* Options */}
+            <TouchableOpacity style={styles.option} onPress={handleDeleteAll}>
+              <MaterialIcons name="delete-outline" size={24} color="#dc3545" />
+              <Text style={[styles.optionText, { color: "#dc3545" }]}>Delete all items</Text>
+            </TouchableOpacity>
+          </View>     
+        </View>
+      </Modal>
 
       <Modal
         visible={detailsModalVisible}
@@ -341,6 +401,41 @@ export default function PantryScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F6F6F6" },
+
+  // Option Modal
+  overlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(32,32,32,0.3)",
+  },  
+  modalContainer: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    elevation: 16,
+    paddingBottom: 10,
+  },  
+  modalCloseButton: {
+    position: "absolute",
+    top: 18,
+    right: 18,
+    zIndex: 1,
+  },
+  option: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 25,
+    paddingLeft: 30,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+    gap: 20,
+  },
+  optionText: {
+    fontSize: 17,
+    color: "#222",
+    fontWeight: "500",
+  },
+  
   listContent: { paddingBottom: 80 },
   categoryHeader: {
     backgroundColor: "#36AF27",
