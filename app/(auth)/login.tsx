@@ -3,12 +3,15 @@ import { useRouter } from "expo-router";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import React, { useState } from "react";
 import {
+  KeyboardAvoidingView, Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
 import { app } from "../../firebaseConfig";
 import { getThemeColors } from "../../theme/colors";
@@ -25,6 +28,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorFields, setErrorFields] = useState<{ email?: boolean; password?: boolean }>({});
+  const insets = useSafeAreaInsets();
 
   const handleLogin = async () => {
     setError(null);
@@ -73,7 +77,21 @@ export default function LoginScreen() {
   };
 
   return (      
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+          backgroundColor: colors.background,
+        }}
+        keyboardShouldPersistTaps="handled"
+      >
 
       {/* Header */}
       <AuthHeader
@@ -122,7 +140,7 @@ export default function LoginScreen() {
           />
           <TouchableOpacity
             onPress={() => setShowPassword(!showPassword)}
-            style={styles.eyeIcon}
+            // style={styles.eyeIcon}
           >
             <Ionicons
               name={showPassword ? "eye-off-outline" : "eye-outline"}
@@ -150,7 +168,8 @@ export default function LoginScreen() {
         </View>
       </View>
 
-    </View>   
+    </ScrollView>  
+    </KeyboardAvoidingView> 
   );
 }
 
@@ -187,8 +206,8 @@ const styles = StyleSheet.create({
   },
   passwordContainer: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
+    alignItems: "center", // this vertically centers children
+    justifyContent: "space-between", // so input and icon are at ends
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -197,12 +216,12 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
     minHeight: 44,
   },
-  eyeIcon: {
-    position: "absolute",
-    right: 16,
-    top: "50%",
-    marginTop: -11,
-  },
+  // eyeIcon: {
+  //   position: "absolute",
+  //   right: 16,
+  //   top: "50%",
+  //   marginTop: -11,
+  // },
   errorText: {
     color: "#E53935",
     fontSize: 14,

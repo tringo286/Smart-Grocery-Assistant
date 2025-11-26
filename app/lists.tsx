@@ -3,7 +3,15 @@ import { useRouter } from "expo-router";
 import { getAuth } from "firebase/auth";
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, Timestamp, updateDoc, where } from "firebase/firestore";
 import React, { useState } from "react";
-import { Alert, FlatList, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert, FlatList, Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet, Text, TouchableOpacity, View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
 import { app, firestore } from "../firebaseConfig";
 import { getThemeColors } from "../theme/colors";
@@ -33,6 +41,7 @@ export default function ListsScreen() {
   const [selectedList, setSelectedList] = useState<GroceryList | null>(null);
   const [renameModalVisible, setRenameModalVisible] = useState(false);
   const [renameValue, setRenameValue] = useState("");
+  const insets = useSafeAreaInsets();
 
   const openRenameModal = () => {
     setRenameModalVisible(true);
@@ -140,7 +149,21 @@ export default function ListsScreen() {
   }, []);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+         <ScrollView
+            contentContainerStyle={{
+              flexGrow: 1,
+              paddingTop: insets.top,
+              paddingBottom: insets.bottom,
+              paddingLeft: insets.left,
+              paddingRight: insets.right,
+              backgroundColor: colors.background,
+            }}
+            keyboardShouldPersistTaps="handled"
+          >
       {/* Header */}
       <Header title="My Lists"/>
 
@@ -273,7 +296,8 @@ export default function ListsScreen() {
           if (tab === "Profile") router.push("/profile");
         }}
       />
-    </View>
+    </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
