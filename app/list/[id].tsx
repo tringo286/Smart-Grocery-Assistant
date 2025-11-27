@@ -1,4 +1,5 @@
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { addDoc, arrayRemove, collection, doc, getDocs, onSnapshot, updateDoc } from "firebase/firestore";
 import React, { Fragment, useEffect, useState } from "react";
@@ -40,6 +41,9 @@ export default function ListDetailScreen() {
     const [editingItem, setEditingItem] = useState<Partial<Item> | null>(null);
     const [editedValues, setEditedValues] = useState<Partial<Item>>({});
     const scrollY = React.useRef(new Animated.Value(0)).current;
+
+    const [showDatePickerModal, setShowDatePickerModal] = useState(false);
+    const [tempDate, setTempDate] = useState<Date>(new Date());
 
     const addButtonOpacity = scrollY.interpolate({
         inputRange: [0, 150],
@@ -521,20 +525,77 @@ export default function ListDetailScreen() {
                                         placeholder="Unit"
                                         placeholderTextColor={colors.textSecondary}
                                     />
-                                    <Text style={[styles.label, { color: colors.textSecondary }]}>Expiration date</Text>
-                                    <TextInput
-                                        style={[styles.inputBoxText, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
-                                        value={editedValues.expirationDate ?? ""}
-                                        onChangeText={(value) => handleInputChange("expirationDate", value)}
-                                        placeholder="MM/DD/YYYY"
-                                        placeholderTextColor={colors.textSecondary}
-                                    />
+                                     <Text style={[styles.label, { color: colors.textSecondary }]}>Expiration Date</Text>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            if (editedValues.expirationDate) {
+                                            const parts = editedValues.expirationDate.split("/");
+                                            if (parts.length === 3) {
+                                                const [mm, dd, yyyy] = parts;
+                                                const date = new Date(`${yyyy}-${mm}-${dd}`);
+                                                if (!isNaN(date.getTime())) setTempDate(date);
+                                            }
+                                            }
+                                            setShowDatePickerModal(true);
+                                        }}
+                                        >
+                                        <View pointerEvents="none">
+                                            <TextInput
+                                            style={styles.inputBoxText}
+                                            value={editedValues.expirationDate ?? ""}
+                                            editable={false}
+                                            />
+                                        </View>
+                                    </TouchableOpacity>
                                 </View>
                             </View>
                         </KeyboardAvoidingView>
                     </View>
-                </Modal>
 
+                    {/* Date Picker Modal */}
+                    <Modal
+                        visible={showDatePickerModal}
+                        transparent
+                        animationType="slide"
+                        onRequestClose={() => setShowDatePickerModal(false)}
+                    >
+                        <View style={[styles.datePickerOverlay, { backgroundColor: colors.overlay }]}>
+                        <TouchableWithoutFeedback onPress={() => setShowDatePickerModal(false)}>
+                            <View style={styles.background} />
+                        </TouchableWithoutFeedback>
+
+                        <View style={[styles.datePickerContainer, { backgroundColor: colors.card }]}>
+                            <View style={styles.datePickerHeader}>
+                            <TouchableOpacity onPress={() => setShowDatePickerModal(false)}>
+                                <Text style={[{ fontSize: 18, color: "#dc3545", fontWeight: "500" }]}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => {
+                                const formatted = `${String(tempDate.getMonth() + 1).padStart(2, "0")}/${String(
+                                    tempDate.getDate()
+                                ).padStart(2, "0")}/${tempDate.getFullYear()}`;
+                                handleInputChange("expirationDate", formatted);
+                                setShowDatePickerModal(false);
+                                }}
+                            >
+                                <Text style={[{ fontSize: 18, color: colors.primary, fontWeight: "600" }]}>Done</Text>
+                            </TouchableOpacity>
+                            </View>
+
+                            <DateTimePicker
+                            value={tempDate}
+                            mode="date"
+                            display={Platform.OS === "ios" ? "spinner" : "default"}
+                            onChange={(event, selectedDate) => {
+                                if (selectedDate) setTempDate(selectedDate);
+                            }}
+                            style={{ alignSelf: "center" }}
+                            />
+                        </View>
+                        </View>
+                    </Modal>
+                </Modal>  
+           
             </Animated.ScrollView>
         ) : (
             <View style={[styles.centeredContent, { backgroundColor: colors.background }]}>
@@ -549,7 +610,7 @@ export default function ListDetailScreen() {
                     <Text style={styles.scanText}>Scan Barcodes</Text>
                 </TouchableOpacity>
             </View>
-        )}
+        )}      
       
         {/* Add Button */}
         <Animated.View style={[styles.addButton, { opacity: addButtonOpacity }]} pointerEvents="box-none">
@@ -784,4 +845,24 @@ const styles = StyleSheet.create({
         marginTop: 3,
         marginLeft: 2,
     },    
+     datePickerOverlay: {
+  flex: 1,
+  justifyContent: "flex-end",
+  backgroundColor: "rgba(0,0,0,0.01)",
+},
+datePickerContainer: {
+  backgroundColor: "#fff",
+  borderTopLeftRadius: 20,
+  borderTopRightRadius: 20,
+  paddingVertical: 20,
+  paddingHorizontal: 18,
+},
+datePickerHeader: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 10,
+},
+
+
 });
