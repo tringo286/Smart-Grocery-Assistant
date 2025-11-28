@@ -169,7 +169,7 @@ export default function PantryScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Header 
         title="My Pantry" 
         titleAlign="left"
@@ -406,7 +406,7 @@ export default function PantryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F6F6F6" },
+  container: { flex: 1 },
 
   // Option Modal
   overlay: {

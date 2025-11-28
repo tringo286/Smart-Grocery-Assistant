@@ -5,11 +5,8 @@ import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, Timesta
 import React, { useState } from "react";
 import {
   Alert, FlatList, Image,
-  KeyboardAvoidingView,
   Modal,
-  Platform,
-  ScrollView,
-  StyleSheet, Text, TouchableOpacity, View,
+  StyleSheet, Text, TouchableOpacity, View
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
@@ -149,21 +146,7 @@ export default function ListsScreen() {
   }, []);
 
   return (
-    <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-        >
-         <ScrollView
-            contentContainerStyle={{
-              flexGrow: 1,
-              paddingTop: insets.top,
-              paddingBottom: insets.bottom,
-              paddingLeft: insets.left,
-              paddingRight: insets.right,
-              backgroundColor: colors.background,
-            }}
-            keyboardShouldPersistTaps="handled"
-          >
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <Header title="My Lists"/>
 
@@ -296,8 +279,7 @@ export default function ListsScreen() {
           if (tab === "Profile") router.push("/profile");
         }}
       />
-    </ScrollView>
-    </KeyboardAvoidingView>
+    </View>  
   );
 }
 
