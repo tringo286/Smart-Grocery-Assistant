@@ -270,7 +270,7 @@ export default function PantryScreen() {
             style={[styles.detailsModalContainer, { backgroundColor: colors.card }]}
           >
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 15 }}>
-              <Text style={[{ fontWeight: "bold", fontSize: 26 }, { color: colors.text }]}>
+              <Text style={[{ fontWeight: "bold", fontSize: 26, flex: 1, flexShrink: 1, marginRight: 10,}, { color: colors.text }]}>
                 {editingItem?.name}
               </Text>
 
