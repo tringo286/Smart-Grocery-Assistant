@@ -360,7 +360,7 @@ export default function ListDetailScreen() {
                             <MaterialCommunityIcons name="cart-arrow-right" size={24} color={colors.textSecondary} />
                             <Text style={[styles.optionText, { color: colors.text }]}>Move checked items to pantry</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.option} onPress={handleDeleteAll}>
+                        <TouchableOpacity style={[styles.option, { borderBottomColor: "transparent" }]} onPress={handleDeleteAll}>
                             <MaterialIcons name="delete-outline" size={24} color="#dc3545" />
                             <Text style={[styles.optionText, { color: "#dc3545" }]}>Delete all items</Text>
                         </TouchableOpacity>
@@ -368,6 +368,23 @@ export default function ListDetailScreen() {
                 </View>     
             </View>
         </Modal>
+
+        {/* Tabs */}
+        <View style={[styles.tabHeader, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+            <TouchableOpacity onPress={() => setActiveTab("active")}>
+                <Text style={[activeTab === "active" ? { ...styles.tabActive, color: colors.primary } : { ...styles.tabInactive, color: colors.textSecondary }]}>Your list</Text>
+                <Text style={[activeTab === "active" ? { ...styles.tabCountActive, color: colors.primary } : { ...styles.tabCountInactive, color: colors.textSecondary }]}>
+                    {activeItems.length} Items
+                </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => setActiveTab("completed")}>
+                <Text style={[activeTab === "completed" ? { ...styles.tabActive, color: colors.primary } : { ...styles.tabInactive, color: colors.textSecondary }]}>Completed Items</Text>
+                <Text style={[activeTab === "completed" ? { ...styles.tabCountActive, color: colors.primary } : { ...styles.tabCountInactive, color: colors.textSecondary }]}>
+                    {completedItems.length} Items
+                </Text>
+            </TouchableOpacity>
+        </View>
 
         {hasItems ? (
             <Animated.ScrollView
@@ -378,22 +395,7 @@ export default function ListDetailScreen() {
                 )}
                 scrollEventThrottle={16}
             >
-            {/* Tabs */}
-            <View style={[styles.tabHeader, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-                <TouchableOpacity onPress={() => setActiveTab("active")}>
-                    <Text style={[activeTab === "active" ? { ...styles.tabActive, color: colors.primary } : { ...styles.tabInactive, color: colors.textSecondary }]}>Your list</Text>
-                    <Text style={[activeTab === "active" ? { ...styles.tabCountActive, color: colors.primary } : { ...styles.tabCountInactive, color: colors.textSecondary }]}>
-                        {activeItems.length} Items
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity onPress={() => setActiveTab("completed")}>
-                    <Text style={[activeTab === "completed" ? { ...styles.tabActive, color: colors.primary } : { ...styles.tabInactive, color: colors.textSecondary }]}>Completed Items</Text>
-                    <Text style={[activeTab === "completed" ? { ...styles.tabCountActive, color: colors.primary } : { ...styles.tabCountInactive, color: colors.textSecondary }]}>
-                        {completedItems.length} Items
-                    </Text>
-                </TouchableOpacity>
-            </View>
+           
 
             {/* Render only the selected tab items */}
             {activeTab === "active" &&

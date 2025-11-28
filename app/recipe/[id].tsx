@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { collection, getDocs } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -11,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
+import { firestore } from "../../firebaseConfig";
 import { getThemeColors } from "../../theme/colors";
 
 export default function RecipeDetailsScreen() {
@@ -20,6 +22,7 @@ export default function RecipeDetailsScreen() {
   const colors = getThemeColors(isDark);
   const [meal, setMeal] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [pantryItems, setPantryItems] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchMeal() {
@@ -53,6 +56,19 @@ export default function RecipeDetailsScreen() {
     }
     fetchMeal();
   }, [id]);
+
+  useEffect(() => {
+    async function fetchPantry() {
+      try {
+        const snapshot = await getDocs(collection(firestore, "pantry"));
+        const pantryNames = snapshot.docs.map(doc => doc.data().name.toLowerCase());
+        setPantryItems(pantryNames);
+      } catch (err) {
+        console.error("Error fetching pantry items:", err);
+      }
+    }
+    fetchPantry();
+  }, []);
 
   if (loading) {
     return (
@@ -99,11 +115,23 @@ export default function RecipeDetailsScreen() {
       {/* Info Card */}
       <View style={[styles.contentCard, { backgroundColor: colors.card }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Ingredients</Text>
-        {ingredients.map((item, idx) => (
-          <Text key={idx} style={[styles.ingredientText, { color: colors.text }]}>
-            • {item.ingredient} — {item.measure}
-          </Text>
-        ))}
+        {ingredients.map((item, idx) => {
+          const isInPantry = pantryItems.includes(item.ingredient.toLowerCase());
+          return (
+            <Text
+              key={idx}
+              style={[
+                styles.ingredientText,
+                { 
+                  color: isInPantry ? "#22c55e" : colors.text, // green if in pantry
+                  fontWeight: isInPantry ? "600" : "400",
+                }
+              ]}
+            >
+              • {item.ingredient} — {item.measure} {isInPantry ? "(In Pantry)" : ""}
+            </Text>
+          );
+        })}
 
         <Text style={[styles.sectionTitle, { marginTop: 18, color: colors.text }]}>
           Instructions
