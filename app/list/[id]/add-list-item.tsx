@@ -172,14 +172,21 @@ export default function AddListItemScreen() {
       </View>
 
       {/* Main Content Area */}
-      <View style={styles.mainContent}>
+      <View style={[styles.mainContent, { backgroundColor: colors.background }]}>
         {filtered.map((item) => (
-          <TouchableOpacity key={item.id} style={[styles.resultRow, { backgroundColor: colors.card, borderBottomColor: colors.border }]} onPress={() => addItemToCurrentList(item)}>
+          <TouchableOpacity
+            key={item.id}
+            style={[
+              styles.resultRow,
+              { backgroundColor: colors.card, borderBottomColor: colors.border }
+            ]}
+            onPress={() => addItemToCurrentList(item)}
+          >
             <Text style={[styles.resultText, { color: colors.text }]}>{item.name}</Text>
           </TouchableOpacity>
         ))}
       </View>
-
+      
       <BarcodeScannerModal
         visible={scannerVisible}
         onClose={closeScanner}

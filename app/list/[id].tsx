@@ -486,7 +486,7 @@ export default function ListDetailScreen() {
                         >
                             {/* Header row */}
                             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 15 }}>
-                                <Text style={{ fontWeight: "bold", fontSize: 26, flex: 1, marginRight: 10 }}>
+                                <Text style={{ fontWeight: "bold", fontSize: 26, flex: 1, marginRight: 10, color: colors.text }}>
                                     {editingItem?.name}
                                 </Text>
 
@@ -541,7 +541,14 @@ export default function ListDetailScreen() {
                                         >
                                         <View pointerEvents="none">
                                             <TextInput
-                                            style={styles.inputBoxText}
+                                           style={[
+                                                styles.inputBoxText,
+                                                {
+                                                    backgroundColor: colors.surface,
+                                                    color: colors.text,
+                                                    borderColor: colors.border
+                                                }
+                                            ]}
                                             value={editedValues.expirationDate ?? ""}
                                             editable={false}
                                             />

@@ -32,7 +32,7 @@ export default function ProfileScreen() {
       <Header
         title={
           <>
-            Hello <Text style={{ color: "#36AF27" }}>{userName}</Text>!
+            Hello <Text style={{ color: "#36AF27" }}>{userName}</Text> !
           </>
         }
       />
@@ -46,6 +46,7 @@ export default function ProfileScreen() {
           <FontAwesome5 name="cog" size={22} color={colors.textSecondary} style={styles.cardIcon} />
           <Text style={[styles.cardText, { color: colors.text }]}>Account</Text>
         </TouchableOpacity>
+        
         <TouchableOpacity
           style={[styles.cardItem, { borderBottomColor: colors.border }]}
           onPress={() => setAppearanceModalVisible(true)}
@@ -53,7 +54,8 @@ export default function ProfileScreen() {
           <MaterialIcons name="palette" size={22} color={colors.textSecondary} style={styles.cardIcon} />
           <Text style={[styles.cardText, { color: colors.text }]}>Appearance</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.cardItem, { borderBottomColor: colors.border }]}>
+
+         <TouchableOpacity style={[styles.cardItem, { borderBottomColor: "transparent" }]}>
           <MaterialIcons name="show-chart" size={22} color={colors.textSecondary} style={styles.cardIcon} />
           <Text style={[styles.cardText, { color: colors.text }]}>Summary</Text>
         </TouchableOpacity>

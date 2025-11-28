@@ -325,7 +325,14 @@ export default function PantryScreen() {
               >
                 <View pointerEvents="none">
                   <TextInput
-                    style={styles.inputBoxText}
+                     style={[
+                        styles.inputBoxText,
+                        {
+                            backgroundColor: colors.surface,
+                            color: colors.text,
+                            borderColor: colors.border
+                        }
+                    ]}
                     value={editedValues.expirationDate ?? ""}
                     editable={false}
                   />

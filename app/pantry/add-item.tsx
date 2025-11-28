@@ -157,7 +157,7 @@ export default function AddPantryItemScreen() {
       </View>
 
       {/* Main Content Area */}
-      <View style={styles.mainContent}>
+      <View style={[styles.mainContent, { backgroundColor: colors.background }]}>
         {filtered.map((item) => (
           <TouchableOpacity key={item.id} style={[styles.resultRow, { backgroundColor: colors.card, borderBottomColor: colors.border }]} onPress={() => addItemToPantry(item)}>
             <Text style={[styles.resultText, { color: colors.text }]}>{item.name}</Text>
