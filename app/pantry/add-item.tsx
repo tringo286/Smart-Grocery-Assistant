@@ -34,27 +34,42 @@ export default function AddPantryItemScreen() {
   // Listen to pantry collection
   useEffect(() => {
     async function fetchData() {
-      const snapshot = await getDocs(collection(firestore, "items"));
-      setAllItems(
-        snapshot.docs.map(
-          (doc) =>
-            ({
-              id: doc.id,
-              name: doc.data().name,
-              category: doc.data().category,
-              quantity: doc.data().quantity || "",
-              unit: doc.data().unit || "",
-              price: doc.data().price || "",
-              expirationDate: doc.data().expirationDate || "",
-            }) as Item
-        )
-      );
+      const user = auth.currentUser;
+      if (!user) {
+        console.warn("User not logged in, cannot fetch items.");
+        return;
+      }
+
+      try {
+        const snapshot = await getDocs(collection(firestore, "items"));
+        setAllItems(
+          snapshot.docs.map(
+            (doc) =>
+              ({
+                id: doc.id,
+                name: doc.data().name,
+                category: doc.data().category,
+                quantity: doc.data().quantity || "",
+                unit: doc.data().unit || "",
+                price: doc.data().price || "",
+                expirationDate: doc.data().expirationDate || "",
+              }) as Item
+          )
+        );
+      } catch (err) {
+        console.error("Error fetching items:", err);
+      }
     }
     fetchData();
   }, []);
+
+
   async function addItemToPantry(item: Item) {
     const user = auth.currentUser;
-    if (!user) return;
+    if (!user) {
+      console.warn("User not logged in, cannot add item.");
+      return;
+    }
 
     const pantryCol = collection(firestore, "pantry");
     const q = query(

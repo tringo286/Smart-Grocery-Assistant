@@ -17,7 +17,7 @@ const BodySubtitle = ({ children, style }: BodySubtitleProps) => {
 const styles = StyleSheet.create({
   bodySubtitle: {
     fontSize: 17,
-    marginBottom: 50,
+    marginBottom: 20,
   },
 });
 
