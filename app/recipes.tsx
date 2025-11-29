@@ -236,13 +236,10 @@ export default function RecipesScreen() {
 
   return matchedExpiring.length > 0;
 }
-
-
     default:
       return true;
   }
 });
-
 
 // Search logic
   const searchedRecipes = search

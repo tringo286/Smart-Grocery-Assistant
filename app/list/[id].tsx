@@ -151,8 +151,8 @@ export default function ListDetailScreen() {
 
             // Add each unique (non-duplicate) item to pantry
             for (const item of newItems) {
-            const { completed, ...pantryItem } = item;
-            await addDoc(collection(firestore, "pantry"), pantryItem);
+                const { completed, ...pantryItem } = item;
+                await addDoc(collection(firestore, "pantry"), pantryItem);
             }
 
             // Remove checked items from the list
@@ -855,23 +855,21 @@ const styles = StyleSheet.create({
         marginLeft: 2,
     },    
      datePickerOverlay: {
-  flex: 1,
-  justifyContent: "flex-end",
-  backgroundColor: "rgba(0,0,0,0.01)",
-},
-datePickerContainer: {
-  backgroundColor: "#fff",
-  borderTopLeftRadius: 20,
-  borderTopRightRadius: 20,
-  paddingVertical: 20,
-  paddingHorizontal: 18,
-},
-datePickerHeader: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: 10,
-},
-
-
+        flex: 1,
+        justifyContent: "flex-end",
+        backgroundColor: "rgba(0,0,0,0.01)",
+    },
+        datePickerContainer: {
+        backgroundColor: "#fff",
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        paddingVertical: 20,
+        paddingHorizontal: 18,
+    },
+        datePickerHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 10,
+    },
 });
