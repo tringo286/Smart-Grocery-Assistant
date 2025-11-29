@@ -27,36 +27,48 @@ export default function RecipeDetailsScreen() {
 
   useEffect(() => {
     async function fetchMeal() {
-      try {
-        const res = await fetch(
-          `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`
-        );
-        if (!res.ok) {
-          console.error(`API returned status ${res.status}`);
+      const maxRetries = 3;
+      let attempt = 0;
+
+      while (attempt < maxRetries) {
+        try {
+          const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`);
+          if (res.status === 429) {
+            attempt++;
+            console.warn(`Rate limited. Retrying in 1s... (Attempt ${attempt})`);
+            await new Promise(r => setTimeout(r, 1000));
+            continue;
+          }
+          if (!res.ok) {
+            console.error(`API returned status ${res.status}`);
+            setMeal(null);
+            setLoading(false);
+            return;
+          }
+          const data = await res.json();
+          if (data.meals && data.meals.length > 0) {
+            setMeal(data.meals[0]);
+          } else {
+            setMeal(null);
+          }
+          setLoading(false);
+          return;
+        } catch (err) {
+          console.error("Error fetching meal details:", err);
           setMeal(null);
+          setLoading(false);
           return;
         }
-        const contentType = res.headers.get("content-type");
-        if (!contentType?.includes("application/json")) {
-          console.error(`Expected JSON but got ${contentType}`);
-          setMeal(null);
-          return;
-        }
-        const data = await res.json();
-        if (data.meals && data.meals.length > 0) {
-          setMeal(data.meals[0]);
-        } else {
-          setMeal(null);
-        }
-      } catch (err) {
-        console.error("Error fetching meal details:", err);
-        setMeal(null);
-      } finally {
-        setLoading(false);
       }
+
+      console.error("Failed to fetch meal after multiple attempts due to rate limit.");
+      setMeal(null);
+      setLoading(false);
     }
-    fetchMeal();
+
+    fetchMeal(); 
   }, [id]);
+
 
   useEffect(() => {
     async function fetchPantry() {
