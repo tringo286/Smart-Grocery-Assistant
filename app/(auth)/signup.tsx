@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { useTheme } from "../../context/ThemeContext";
 import { app } from "../../firebaseConfig";
 import { getThemeColors } from "../../theme/colors";
@@ -31,7 +31,7 @@ export default function SignUpScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorFields, setErrorFields] = useState<{ name?: boolean; email?: boolean; password?: boolean, confirmPassword?: boolean}>({});
-  const insets = useSafeAreaInsets();
+
 
   const handleSignUp = async () => {
     setError(null);
@@ -115,10 +115,7 @@ export default function SignUpScreen() {
      <ScrollView
         contentContainerStyle={{
           flexGrow: 1,
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom,
-          paddingLeft: insets.left,
-          paddingRight: insets.right,
+        
           backgroundColor: colors.background,
         }}
         keyboardShouldPersistTaps="handled"
@@ -329,5 +326,6 @@ const styles = StyleSheet.create({
     color: "#36AF27",
     fontSize: 16,
     fontWeight: "bold",
+    marginBottom: 80,
   },
 });

@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { useTheme } from "../../context/ThemeContext";
 import { app } from "../../firebaseConfig";
 import { getThemeColors } from "../../theme/colors";
@@ -28,7 +28,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorFields, setErrorFields] = useState<{ email?: boolean; password?: boolean }>({});
-  const insets = useSafeAreaInsets();
+
 
   const handleLogin = async () => {
     setError(null);
@@ -84,10 +84,7 @@ export default function LoginScreen() {
       <ScrollView
         contentContainerStyle={{
           flexGrow: 1,
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom,
-          paddingLeft: insets.left,
-          paddingRight: insets.right,
+   
           backgroundColor: colors.background,
         }}
         keyboardShouldPersistTaps="handled"
