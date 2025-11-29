@@ -8,8 +8,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  ScrollView,
-  StyleSheet, Text, TouchableOpacity, View,
+  StyleSheet, Text, TouchableOpacity, View
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
@@ -153,16 +152,15 @@ export default function ListsScreen() {
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
-         <ScrollView
-            contentContainerStyle={{
-              flexGrow: 1,
+         <View
+            style={{
+              flex: 1,
               paddingTop: insets.top,
               paddingBottom: insets.bottom,
               paddingLeft: insets.left,
               paddingRight: insets.right,
               backgroundColor: colors.background,
             }}
-            keyboardShouldPersistTaps="handled"
           >
       {/* Header */}
       <Header title="My Lists"/>
@@ -296,7 +294,7 @@ export default function ListsScreen() {
           if (tab === "Profile") router.push("/profile");
         }}
       />
-    </ScrollView>
+    </View>
     </KeyboardAvoidingView>
   );
 }
