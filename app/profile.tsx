@@ -55,7 +55,7 @@ export default function ProfileScreen() {
           <Text style={[styles.cardText, { color: colors.text }]}>Appearance</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.cardItem, { borderBottomColor: colors.border }]}
+          style={[styles.cardItem, { borderBottomColor: 'transparent' }]}
           onPress={() => router.push("/summary")}
         >
           <MaterialIcons name="show-chart" size={22} color={colors.textSecondary} style={styles.cardIcon} />

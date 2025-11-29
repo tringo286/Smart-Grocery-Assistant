@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { collection, getDocs } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -60,15 +61,31 @@ export default function RecipeDetailsScreen() {
   useEffect(() => {
     async function fetchPantry() {
       try {
-        const snapshot = await getDocs(collection(firestore, "pantry"));
-        const pantryNames = snapshot.docs.map(doc => doc.data().name.toLowerCase());
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        if (!user) {
+          console.warn("User not logged in, cannot fetch pantry items.");
+          return;
+        }
+
+        // Query pantry items for this user
+        const pantryCol = collection(firestore, "pantry");
+        const q = query(pantryCol, where("userId", "==", user.uid));
+        const snapshot = await getDocs(q);
+
+        const pantryNames = snapshot.docs
+          .map(doc => doc.data().name?.toLowerCase())
+          .filter(Boolean); // remove undefined/null
+
         setPantryItems(pantryNames);
       } catch (err) {
         console.error("Error fetching pantry items:", err);
       }
     }
+
     fetchPantry();
-  }, []);
+}, []);
 
   if (loading) {
     return (

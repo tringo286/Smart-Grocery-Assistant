@@ -154,11 +154,7 @@ export default function ListsScreen() {
         >
          <View
             style={{
-              flex: 1,
-              paddingTop: insets.top,
-              paddingBottom: insets.bottom,
-              paddingLeft: insets.left,
-              paddingRight: insets.right,
+              flex: 1,             
               backgroundColor: colors.background,
             }}
           >

@@ -243,7 +243,7 @@ export default function PantryScreen() {
             onPress={() => setOptionsModalVisible(false)} 
           />   
 
-          <View style={styles.modalContainer}>
+          <View style={[styles.modalContainer, { backgroundColor: colors.card }]}>
             <TouchableOpacity 
               style={styles.modalCloseButton} 
               onPress={() => setOptionsModalVisible(false)}
@@ -252,7 +252,13 @@ export default function PantryScreen() {
             </TouchableOpacity>
 
             {/* Options */}
-            <TouchableOpacity style={styles.option} onPress={handleDeleteAll}>
+            <TouchableOpacity 
+              style={[
+                styles.option, 
+                { borderBottomColor: "transparent" }  
+              ]}  
+              onPress={handleDeleteAll}
+            >
               <MaterialIcons name="delete-outline" size={24} color="#dc3545" />
               <Text style={[styles.optionText, { color: "#dc3545" }]}>Delete all items</Text>
             </TouchableOpacity>
