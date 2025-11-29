@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { collection, getDocs } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -13,7 +14,7 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "../context/ThemeContext";
-import { firestore } from "../firebaseConfig";
+import { app, firestore } from "../firebaseConfig";
 import { getThemeColors } from "../theme/colors";
 import TabBar from "./components/TabBar";
 
@@ -34,6 +35,7 @@ const quickCategories = new Set(["Breakfast", "Snack", "Side"]);
 
 export default function RecipesScreen() {
   const router = useRouter();
+  const auth = getAuth(app);
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
   const [activeFilter, setActiveFilter] = useState("all");
@@ -50,7 +52,13 @@ export default function RecipesScreen() {
   // Fetch pantry items from Firestore
   useEffect(() => {
     async function fetchPantry() {
-      const snap = await getDocs(collection(firestore, "pantry"));
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const pantryCol = collection(firestore, "pantry");
+      const q = query(pantryCol, where("userId", "==", user.uid));
+      const snap = await getDocs(q);
+      
       setPantryItems(
         snap.docs
           .map(doc => ({

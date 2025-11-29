@@ -1,10 +1,11 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { addDoc, collection, getDocs, query, Timestamp, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
-import { firestore } from "../../firebaseConfig";
+import { app, firestore } from "../../firebaseConfig";
 import { useBarcodeScanner } from "../../hooks/useBarcodeScanner";
 import { getThemeColors } from "../../theme/colors";
 import BarcodeScannerModal from "../components/BarcodeScannerModal";
@@ -21,6 +22,7 @@ type Item = {
 
 export default function AddPantryItemScreen() {
   const router = useRouter();
+  const auth = getAuth(app);
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
   const [item, setItem] = useState<string>("");
@@ -50,11 +52,14 @@ export default function AddPantryItemScreen() {
     }
     fetchData();
   }, []);
-
   async function addItemToPantry(item: Item) {
+    const user = auth.currentUser;
+    if (!user) return;
+
     const pantryCol = collection(firestore, "pantry");
     const q = query(
       pantryCol,
+      where("userId", "==", user.uid),
       where("name", "==", item.name),
       where("category", "==", item.category)
     );
@@ -73,7 +78,29 @@ export default function AddPantryItemScreen() {
 
     try {
       const { id, ...pantryItem } = item;
-      await addDoc(pantryCol, pantryItem);
+      const now = Timestamp.now();
+      
+      // Add item to pantry with dateAdded and userId
+      await addDoc(pantryCol, {
+        ...pantryItem,
+        userId: user.uid,
+        dateAdded: now,
+      });
+
+      // Create expense record if item has a price
+      const price = parseFloat(item.price.replace(/[^0-9.]/g, "")) || 0;
+      
+      if (price > 0) {
+        await addDoc(collection(firestore, "expenses"), {
+          userId: user.uid,
+          itemName: item.name,
+          category: item.category,
+          amount: price,
+          date: now,
+          source: "pantry",
+        });
+      }
+
       setTimeout(() => {
         Alert.alert(
           "Success",
@@ -163,6 +190,34 @@ export default function AddPantryItemScreen() {
             <Text style={[styles.resultText, { color: colors.text }]}>{item.name}</Text>
           </TouchableOpacity>
         ))}
+        {item.trim() && filtered.length === 0 && (
+          <View style={styles.noResultsContainer}>
+            <Text style={[styles.noResultsText, { color: colors.textSecondary }]}>
+              No items found for "{item}"
+            </Text>
+            <TouchableOpacity
+              style={[styles.createButton, { backgroundColor: colors.primary }]}
+              onPress={() => {
+                const newItem: Item = {
+                  id: Date.now().toString(),
+                  name: item.trim(),
+                  category: "Other",
+                  quantity: "1",
+                  unit: "",
+                  price: "",
+                  expirationDate: "",
+                };
+                addItemToPantry(newItem);
+                setItem("");
+              }}
+            >
+              <Ionicons name="add-circle-outline" size={20} color={colors.background} style={{ marginRight: 8 }} />
+              <Text style={[styles.createButtonText, { color: colors.background }]}>
+                Create "{item.trim()}"
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       {/* Barcode Scanner Modal */}
@@ -230,5 +285,27 @@ const styles = StyleSheet.create({
   resultText: {
     fontSize: 16,
     color: "#444",
+  },
+  noResultsContainer: {
+    padding: 24,
+    alignItems: "center",
+  },
+  noResultsText: {
+    fontSize: 16,
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  createButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#36AF27",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  createButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#fff",
   },
 });

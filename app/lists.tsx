@@ -5,7 +5,9 @@ import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, Timesta
 import React, { useState } from "react";
 import {
   Alert, FlatList, Image,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   StyleSheet, Text, TouchableOpacity, View
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -146,7 +148,20 @@ export default function ListsScreen() {
   }, []);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+         <View
+            style={{
+              flex: 1,
+              paddingTop: insets.top,
+              paddingBottom: insets.bottom,
+              paddingLeft: insets.left,
+              paddingRight: insets.right,
+              backgroundColor: colors.background,
+            }}
+          >
       {/* Header */}
       <Header title="My Lists"/>
 
@@ -279,7 +294,8 @@ export default function ListsScreen() {
           if (tab === "Profile") router.push("/profile");
         }}
       />
-    </View>  
+    </View>
+    </KeyboardAvoidingView>
   );
 }
 

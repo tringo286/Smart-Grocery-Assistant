@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
   KeyboardAvoidingView,
+  KeyboardTypeOptions,
   Modal,
   Platform,
   StyleSheet,
@@ -22,6 +23,7 @@ type InputModalProps = {
   onSave: () => void;
   onClose: () => void;
   secureTextEntry?: boolean;
+  keyboardType?: KeyboardTypeOptions;
 };
 
 const InputModal: React.FC<InputModalProps> = ({
@@ -33,6 +35,7 @@ const InputModal: React.FC<InputModalProps> = ({
   onSave,
   onClose,
   secureTextEntry,
+  keyboardType,
 }) => {
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
@@ -50,7 +53,6 @@ const InputModal: React.FC<InputModalProps> = ({
           </TouchableOpacity>
 
           <Text style={[styles.modalTitle, { color: colors.text }]}>{title}</Text>
-
           <TextInput
             style={[styles.modalInput, { backgroundColor: colors.surface, color: colors.text }]}
             placeholder={placeholder}
@@ -58,6 +60,7 @@ const InputModal: React.FC<InputModalProps> = ({
             onChangeText={onChangeText}
             placeholderTextColor={colors.textSecondary}
             secureTextEntry={secureTextEntry ?? false}
+            keyboardType={keyboardType ?? "default"}
           />
 
           <TouchableOpacity

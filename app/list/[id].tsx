@@ -1,11 +1,12 @@
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { addDoc, arrayRemove, collection, doc, getDocs, onSnapshot, updateDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { addDoc, arrayRemove, collection, doc, getDocs, onSnapshot, query, Timestamp, updateDoc, where } from "firebase/firestore";
 import React, { Fragment, useEffect, useState } from "react";
 import { Alert, Animated, Image, Keyboard, KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
-import { firestore } from "../../firebaseConfig";
+import { app, firestore } from "../../firebaseConfig";
 import { useBarcodeScanner } from "../../hooks/useBarcodeScanner";
 import { getThemeColors } from "../../theme/colors";
 import BarcodeScannerModal from "../components/BarcodeScannerModal";
@@ -26,6 +27,7 @@ type Item = {
 
 export default function ListDetailScreen() {
     const router = useRouter();
+    const auth = getAuth(app);
     const { isDark } = useTheme();
     const colors = getThemeColors(isDark);
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -131,9 +133,14 @@ export default function ListDetailScreen() {
 
     async function handleMoveCheckedToPantry() {
         if (!listRef) return;
+        const user = auth.currentUser;
+        if (!user) return;
+
         try {
-            // Fetch current pantry items
-            const pantrySnapshot = await getDocs(collection(firestore, "pantry"));
+            // Fetch current pantry items for this user
+            const pantryCol = collection(firestore, "pantry");
+            const q = query(pantryCol, where("userId", "==", user.uid));
+            const pantrySnapshot = await getDocs(q);
             const pantryItems = pantrySnapshot.docs.map(
             doc => ({
                 name: doc.data().name,
@@ -149,10 +156,29 @@ export default function ListDetailScreen() {
             );
             });
 
-            // Add each unique (non-duplicate) item to pantry
+            const now = Timestamp.now();
+
+            // Add each unique (non-duplicate) item to pantry and create expense records
             for (const item of newItems) {
-                const { completed, ...pantryItem } = item;
-                await addDoc(collection(firestore, "pantry"), pantryItem);
+            const { completed, ...pantryItem } = item;
+            await addDoc(collection(firestore, "pantry"), {
+                ...pantryItem,
+                userId: user.uid,
+                dateAdded: now,
+            });
+
+            // Create expense record if item has a price
+            const price = parseFloat((pantryItem.price || "").replace(/[^0-9.]/g, "")) || 0;
+            if (price > 0) {
+                await addDoc(collection(firestore, "expenses"), {
+                userId: user.uid,
+                itemName: item.name,
+                category: item.category,
+                amount: price,
+                date: now,
+                source: "list",
+                });
+            }
             }
 
             // Remove checked items from the list
@@ -596,7 +622,17 @@ export default function ListDetailScreen() {
                             mode="date"
                             display={Platform.OS === "ios" ? "spinner" : "default"}
                             onChange={(event, selectedDate) => {
-                                if (selectedDate) setTempDate(selectedDate);
+                                if (Platform.OS === "android") {
+                                    setShowDatePickerModal(false);
+                                    if (event.type === "set" && selectedDate) {
+                                        const formatted = `${String(selectedDate.getMonth() + 1).padStart(2, "0")}/${String(
+                                            selectedDate.getDate()
+                                        ).padStart(2, "0")}/${selectedDate.getFullYear()}`;
+                                        handleInputChange("expirationDate", formatted);
+                                    }
+                                } else {
+                                    if (selectedDate) setTempDate(selectedDate);
+                                }
                             }}
                             style={{ alignSelf: "center" }}
                             />

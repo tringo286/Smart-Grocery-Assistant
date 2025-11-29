@@ -54,11 +54,10 @@ export default function ProfileScreen() {
           <MaterialIcons name="palette" size={22} color={colors.textSecondary} style={styles.cardIcon} />
           <Text style={[styles.cardText, { color: colors.text }]}>Appearance</Text>
         </TouchableOpacity>
-
-         <TouchableOpacity 
-          style={[styles.cardItem, { borderBottomColor: "transparent"}]}
+        <TouchableOpacity 
+          style={[styles.cardItem, { borderBottomColor: colors.border }]}
           onPress={() => router.push("/summary")}
-          >
+        >
           <MaterialIcons name="show-chart" size={22} color={colors.textSecondary} style={styles.cardIcon} />
           <Text style={[styles.cardText, { color: colors.text }]}>Summary</Text>
         </TouchableOpacity>
