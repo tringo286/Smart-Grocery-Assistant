@@ -190,6 +190,34 @@ export default function AddPantryItemScreen() {
             <Text style={[styles.resultText, { color: colors.text }]}>{item.name}</Text>
           </TouchableOpacity>
         ))}
+        {item.trim() && filtered.length === 0 && (
+          <View style={styles.noResultsContainer}>
+            <Text style={[styles.noResultsText, { color: colors.textSecondary }]}>
+              No items found for "{item}"
+            </Text>
+            <TouchableOpacity
+              style={[styles.createButton, { backgroundColor: colors.primary }]}
+              onPress={() => {
+                const newItem: Item = {
+                  id: Date.now().toString(),
+                  name: item.trim(),
+                  category: "Other",
+                  quantity: "1",
+                  unit: "",
+                  price: "",
+                  expirationDate: "",
+                };
+                addItemToPantry(newItem);
+                setItem("");
+              }}
+            >
+              <Ionicons name="add-circle-outline" size={20} color={colors.background} style={{ marginRight: 8 }} />
+              <Text style={[styles.createButtonText, { color: colors.background }]}>
+                Create "{item.trim()}"
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       {/* Barcode Scanner Modal */}
@@ -257,5 +285,27 @@ const styles = StyleSheet.create({
   resultText: {
     fontSize: 16,
     color: "#444",
+  },
+  noResultsContainer: {
+    padding: 24,
+    alignItems: "center",
+  },
+  noResultsText: {
+    fontSize: 16,
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  createButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#36AF27",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  createButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#fff",
   },
 });

@@ -2,7 +2,7 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { getAuth } from "firebase/auth";
 import { collection, doc, getDoc, onSnapshot, query, setDoc, Timestamp, where } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Alert, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LineChart, PieChart } from "react-native-chart-kit";
 import { useTheme } from "../context/ThemeContext";
@@ -11,14 +11,13 @@ import { getThemeColors } from "../theme/colors";
 import Header from "./components/Header";
 import InputModal from "./components/InputModal";
 
-type Expense = {
+type PantryItem = {
   id: string;
   userId: string;
-  itemName: string;
+  name: string;
   category: string;
-  amount: number;
-  date: Timestamp;
-  source: string;
+  price: string;
+  dateAdded: Timestamp;
 };
 
 export default function SummaryScreen() {
@@ -35,10 +34,10 @@ export default function SummaryScreen() {
   const [budgetDayInputValue, setBudgetDayInputValue] = useState("");
   const [categoryExpenses, setCategoryExpenses] = useState<{ [key: string]: number }>({});
   const [monthlyExpenses, setMonthlyExpenses] = useState<number[]>([]);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
 
   // Helper function to get budget period start and end dates
-  const getBudgetPeriod = (referenceDate: Date = new Date()) => {
+  const getBudgetPeriod = useCallback((referenceDate: Date = new Date()) => {
     const year = referenceDate.getFullYear();
     const month = referenceDate.getMonth();
     const day = referenceDate.getDate();
@@ -57,7 +56,7 @@ export default function SummaryScreen() {
     }
     
     return { startDate, endDate };
-  };
+  }, [budgetStartDay]);
 
   // Load user's settings from Firestore
   useEffect(() => {
@@ -81,42 +80,46 @@ export default function SummaryScreen() {
     loadSettings();
   }, []);
 
-  // Listen to expenses for current user
+  // Listen to pantry items for current user - real-time updates
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
 
-    const expensesCol = collection(firestore, "expenses");
-    const q = query(expensesCol, where("userId", "==", user.uid));
+    const pantryCol = collection(firestore, "pantry");
+    const q = query(pantryCol, where("userId", "==", user.uid));
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const allExpenses = snapshot.docs.map(
+      const allItems = snapshot.docs.map(
         (doc) => ({
           id: doc.id,
           ...doc.data(),
-        }) as Expense
+        }) as PantryItem
       );
       
-      setExpenses(allExpenses);
+      setPantryItems(allItems);
       
       // Calculate current period expenses
       const { startDate, endDate } = getBudgetPeriod();
       
-      const currentPeriodExpenses = allExpenses.filter(expense => {
-        const expenseDate = expense.date.toDate();
-        return expenseDate >= startDate && expenseDate <= endDate;
+      const currentPeriodItems = allItems.filter(item => {
+        const itemDate = item.dateAdded.toDate();
+        return itemDate >= startDate && itemDate <= endDate;
       });
       
-      const total = currentPeriodExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+      const total = currentPeriodItems.reduce((sum, item) => {
+        const price = parseFloat(item.price.replace(/[^0-9.]/g, "")) || 0;
+        return sum + price;
+      }, 0);
       setTotalExpenses(total);
 
       // Calculate expenses by category for current period
       const categoryTotals: { [key: string]: number } = {};
-      currentPeriodExpenses.forEach((expense) => {
-        if (!categoryTotals[expense.category]) {
-          categoryTotals[expense.category] = 0;
+      currentPeriodItems.forEach((item) => {
+        const price = parseFloat(item.price.replace(/[^0-9.]/g, "")) || 0;
+        if (!categoryTotals[item.category]) {
+          categoryTotals[item.category] = 0;
         }
-        categoryTotals[expense.category] += expense.amount;
+        categoryTotals[item.category] += price;
       });
       setCategoryExpenses(categoryTotals);
 
@@ -127,19 +130,22 @@ export default function SummaryScreen() {
         refDate.setMonth(refDate.getMonth() - i);
         const period = getBudgetPeriod(refDate);
         
-        const periodExpenses = allExpenses.filter(expense => {
-          const expenseDate = expense.date.toDate();
-          return expenseDate >= period.startDate && expenseDate <= period.endDate;
+        const periodItems = allItems.filter(item => {
+          const itemDate = item.dateAdded.toDate();
+          return itemDate >= period.startDate && itemDate <= period.endDate;
         });
         
-        const periodTotal = periodExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+        const periodTotal = periodItems.reduce((sum, item) => {
+          const price = parseFloat(item.price.replace(/[^0-9.]/g, "")) || 0;
+          return sum + price;
+        }, 0);
         monthlyTotals.push(periodTotal);
       }
       setMonthlyExpenses(monthlyTotals);
     });
 
     return () => unsubscribe();
-  }, [budgetStartDay]);
+  }, [getBudgetPeriod]);
 
   const handleSaveSpendingLimit = async () => {
     const user = auth.currentUser;
@@ -152,9 +158,16 @@ export default function SummaryScreen() {
       await setDoc(userSettingsRef, { spendingLimit: newLimit }, { merge: true });
       setSpendingLimit(newLimit);
       setEditLimitModalVisible(false);
-      Alert.alert("Success", "Spending limit updated!");
+      setLimitInputValue("");
+      setTimeout(() => {
+        Alert.alert("Success", "Spending limit updated!");
+      }, 300);
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      setEditLimitModalVisible(false);
+      setLimitInputValue("");
+      setTimeout(() => {
+        Alert.alert("Error", error.message);
+      }, 300);
     }
   };
 
@@ -173,9 +186,16 @@ export default function SummaryScreen() {
       await setDoc(userSettingsRef, { budgetStartDay: newDay }, { merge: true });
       setBudgetStartDay(newDay);
       setBudgetDayModalVisible(false);
-      Alert.alert("Success", "Budget cycle updated!");
+      setBudgetDayInputValue("");
+      setTimeout(() => {
+        Alert.alert("Success", "Budget cycle updated!");
+      }, 300);
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      setBudgetDayModalVisible(false);
+      setBudgetDayInputValue("");
+      setTimeout(() => {
+        Alert.alert("Error", error.message);
+      }, 300);
     }
   };
 
@@ -431,7 +451,10 @@ export default function SummaryScreen() {
         value={limitInputValue}
         onChangeText={setLimitInputValue}
         onSave={handleSaveSpendingLimit}
-        onClose={() => setEditLimitModalVisible(false)}
+        onClose={() => {
+          setEditLimitModalVisible(false);
+          setLimitInputValue("");
+        }}
         keyboardType="numeric"
       />
 
@@ -443,7 +466,10 @@ export default function SummaryScreen() {
         value={budgetDayInputValue}
         onChangeText={setBudgetDayInputValue}
         onSave={handleSaveBudgetDay}
-        onClose={() => setBudgetDayModalVisible(false)}
+        onClose={() => {
+          setBudgetDayModalVisible(false);
+          setBudgetDayInputValue("");
+        }}
         keyboardType="numeric"
       />
     </View>

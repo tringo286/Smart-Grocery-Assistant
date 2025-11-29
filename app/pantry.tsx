@@ -376,7 +376,17 @@ export default function PantryScreen() {
                   mode="date"
                   display={Platform.OS === "ios" ? "spinner" : "default"}
                   onChange={(event, selectedDate) => {
-                    if (selectedDate) setTempDate(selectedDate);
+                    if (Platform.OS === "android") {
+                      setShowDatePickerModal(false);
+                      if (event.type === "set" && selectedDate) {
+                        const formatted = `${String(selectedDate.getMonth() + 1).padStart(2, "0")}/${String(
+                          selectedDate.getDate()
+                        ).padStart(2, "0")}/${selectedDate.getFullYear()}`;
+                        handleInputChange("expirationDate", formatted);
+                      }
+                    } else {
+                      if (selectedDate) setTempDate(selectedDate);
+                    }
                   }}
                   style={{ alignSelf: "center" }}
                 />
