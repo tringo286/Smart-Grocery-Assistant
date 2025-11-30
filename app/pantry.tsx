@@ -185,7 +185,7 @@ export default function PantryScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Header 
         title="My Pantry" 
         titleAlign="left"
@@ -253,7 +253,7 @@ export default function PantryScreen() {
             onPress={() => setOptionsModalVisible(false)} 
           />   
 
-          <View style={styles.modalContainer}>
+          <View style={[styles.modalContainer, { backgroundColor: colors.card }]}>
             <TouchableOpacity 
               style={styles.modalCloseButton} 
               onPress={() => setOptionsModalVisible(false)}
@@ -262,7 +262,13 @@ export default function PantryScreen() {
             </TouchableOpacity>
 
             {/* Options */}
-            <TouchableOpacity style={styles.option} onPress={handleDeleteAll}>
+            <TouchableOpacity 
+              style={[
+                styles.option, 
+                { borderBottomColor: "transparent" }  
+              ]}  
+              onPress={handleDeleteAll}
+            >
               <MaterialIcons name="delete-outline" size={24} color="#dc3545" />
               <Text style={[styles.optionText, { color: "#dc3545" }]}>Delete all items</Text>
             </TouchableOpacity>
@@ -286,7 +292,7 @@ export default function PantryScreen() {
             style={[styles.detailsModalContainer, { backgroundColor: colors.card }]}
           >
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 15 }}>
-              <Text style={[{ fontWeight: "bold", fontSize: 26 }, { color: colors.text }]}>
+              <Text style={[{ fontWeight: "bold", fontSize: 26, flex: 1, flexShrink: 1, marginRight: 10,}, { color: colors.text }]}>
                 {editingItem?.name}
               </Text>
 
@@ -341,7 +347,14 @@ export default function PantryScreen() {
               >
                 <View pointerEvents="none">
                   <TextInput
-                    style={styles.inputBoxText}
+                     style={[
+                        styles.inputBoxText,
+                        {
+                            backgroundColor: colors.surface,
+                            color: colors.text,
+                            borderColor: colors.border
+                        }
+                    ]}
                     value={editedValues.expirationDate ?? ""}
                     editable={false}
                   />
@@ -432,7 +445,7 @@ export default function PantryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F6F6F6" },
+  container: { flex: 1 },
 
   // Option Modal
   overlay: {

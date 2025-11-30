@@ -2,6 +2,7 @@ import BarcodeScannerModal from "@/app/components/BarcodeScannerModal";
 import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { getAuth } from "firebase/auth";
 import { arrayUnion, collection, doc, getDoc, getDocs, updateDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -41,21 +42,33 @@ export default function AddListItemScreen() {
 
   useEffect(() => {
     async function fetchData() {
-      const snapshot = await getDocs(collection(firestore, "items"));
-      setAllItems(
-        snapshot.docs.map((doc) => {
-          const data = doc.data() as ItemDoc;
-          return {
-            id: doc.id,
-            name: data.name,
-            category: data.category,
-            quantity: data.quantity || "",
-            unit: data.unit || "",
-            price: data.price || "",
-            expirationDate: data.expirationDate || "",
-          };
-        })
-      );
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (!user) {
+        console.warn("User not logged in, cannot fetch items.");
+        return;
+      }
+
+      try {
+        const snapshot = await getDocs(collection(firestore, "items"));
+        setAllItems(
+          snapshot.docs.map((doc) => {
+            const data = doc.data() as ItemDoc;
+            return {
+              id: doc.id,
+              name: data.name,
+              category: data.category,
+              quantity: data.quantity || "",
+              unit: data.unit || "",
+              price: data.price || "",
+              expirationDate: data.expirationDate || "",
+            };
+          })
+        );
+      } catch (err) {
+        console.error("Error fetching items:", err);
+      }
     }
     fetchData();
   }, []);
@@ -89,57 +102,66 @@ export default function AddListItemScreen() {
       }, 500);
     },
   });
-
   
-    async function addItemToCurrentList(item: Item) {
-      if (!listId) return;
-      const listRef = doc(firestore, "lists", listId);
+  async function addItemToCurrentList(item: Item) {
+    const auth = getAuth();
+    const user = auth.currentUser;
 
-      try {
-        const docSnap = await getDoc(listRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          const listItems = data.items || [];
+    if (!user) {
+      console.warn("User not logged in, cannot add item.");
+      return;
+    }
 
-          const duplicate = listItems.find(
-            (i: Item) =>
-              i.name.trim().toLowerCase() === item.name.trim().toLowerCase() &&
-              i.category.trim().toLowerCase() === item.category.trim().toLowerCase()
-          );
-          if (duplicate) {
-            setTimeout(() => {
-              Alert.alert(
-                "Already in list",
-                `${item.name} is already in your list.`,
-                [{ text: "OK", onPress: resetLock }]
-              );
-            }, 500);
-            return;
-          }
+    if (!listId) return;
+
+    const listRef = doc(firestore, "lists", listId);
+
+    try {
+      const docSnap = await getDoc(listRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const listItems = data.items || [];
+
+        const duplicate = listItems.find(
+          (i: Item) =>
+            i.name.trim().toLowerCase() === item.name.trim().toLowerCase() &&
+            i.category.trim().toLowerCase() === item.category.trim().toLowerCase()
+        );
+        if (duplicate) {
+          setTimeout(() => {
+            Alert.alert(
+              "Already in list",
+              `${item.name} is already in your list.`,
+              [{ text: "OK", onPress: resetLock }]
+            );
+          }, 500);
+          return;
         }
-
-        await updateDoc(listRef, {
-          items: arrayUnion(item),
-        });
-
-        setTimeout(() => {
-          Alert.alert(
-            "Success",
-            `${item.name} was added to your list.`,
-            [{ text: "OK", onPress: resetLock }]
-          );
-        }, 500);
-      } catch (error) {
-        console.warn("Failed to add item to current list:", error);
-        setTimeout(() => {
-          Alert.alert(
-            "Error",
-            "Failed to add item to your list. Please try again.",
-            [{ text: "OK", onPress: resetLock }]
-          );
-        }, 500);
       }
-    }  
+
+      await updateDoc(listRef, {
+        items: arrayUnion(item),
+      });
+
+      setTimeout(() => {
+        Alert.alert(
+          "Success",
+          `${item.name} was added to your list.`,
+          [{ text: "OK", onPress: resetLock }]
+        );
+      }, 500);
+    } catch (error) {
+      console.warn("Failed to add item to current list:", error);
+      setTimeout(() => {
+        Alert.alert(
+          "Error",
+          "Failed to add item to your list. Please try again.",
+          [{ text: "OK", onPress: resetLock }]
+        );
+      }, 500);
+    }
+  }
+
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -172,9 +194,16 @@ export default function AddListItemScreen() {
       </View>
 
       {/* Main Content Area */}
-      <View style={styles.mainContent}>
+      <View style={[styles.mainContent, { backgroundColor: colors.background }]}>
         {filtered.map((item) => (
-          <TouchableOpacity key={item.id} style={[styles.resultRow, { backgroundColor: colors.card, borderBottomColor: colors.border }]} onPress={() => addItemToCurrentList(item)}>
+          <TouchableOpacity
+            key={item.id}
+            style={[
+              styles.resultRow,
+              { backgroundColor: colors.card, borderBottomColor: colors.border }
+            ]}
+            onPress={() => addItemToCurrentList(item)}
+          >
             <Text style={[styles.resultText, { color: colors.text }]}>{item.name}</Text>
           </TouchableOpacity>
         ))}
@@ -207,7 +236,7 @@ export default function AddListItemScreen() {
           </View>
         )}
       </View>
-
+      
       <BarcodeScannerModal
         visible={scannerVisible}
         onClose={closeScanner}

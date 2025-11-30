@@ -397,7 +397,7 @@ export default function ListDetailScreen() {
                             <MaterialCommunityIcons name="cart-arrow-right" size={24} color={colors.textSecondary} />
                             <Text style={[styles.optionText, { color: colors.text }]}>Move checked items to pantry</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.option} onPress={handleDeleteAll}>
+                        <TouchableOpacity style={[styles.option, { borderBottomColor: "transparent" }]} onPress={handleDeleteAll}>
                             <MaterialIcons name="delete-outline" size={24} color="#dc3545" />
                             <Text style={[styles.optionText, { color: "#dc3545" }]}>Delete all items</Text>
                         </TouchableOpacity>
@@ -405,6 +405,23 @@ export default function ListDetailScreen() {
                 </View>     
             </View>
         </Modal>
+
+        {/* Tabs */}
+        <View style={[styles.tabHeader, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+            <TouchableOpacity onPress={() => setActiveTab("active")}>
+                <Text style={[activeTab === "active" ? { ...styles.tabActive, color: colors.primary } : { ...styles.tabInactive, color: colors.textSecondary }]}>Your list</Text>
+                <Text style={[activeTab === "active" ? { ...styles.tabCountActive, color: colors.primary } : { ...styles.tabCountInactive, color: colors.textSecondary }]}>
+                    {activeItems.length} Items
+                </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => setActiveTab("completed")}>
+                <Text style={[activeTab === "completed" ? { ...styles.tabActive, color: colors.primary } : { ...styles.tabInactive, color: colors.textSecondary }]}>Completed Items</Text>
+                <Text style={[activeTab === "completed" ? { ...styles.tabCountActive, color: colors.primary } : { ...styles.tabCountInactive, color: colors.textSecondary }]}>
+                    {completedItems.length} Items
+                </Text>
+            </TouchableOpacity>
+        </View>
 
         {hasItems ? (
             <Animated.ScrollView
@@ -415,22 +432,7 @@ export default function ListDetailScreen() {
                 )}
                 scrollEventThrottle={16}
             >
-            {/* Tabs */}
-            <View style={[styles.tabHeader, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
-                <TouchableOpacity onPress={() => setActiveTab("active")}>
-                    <Text style={[activeTab === "active" ? { ...styles.tabActive, color: colors.primary } : { ...styles.tabInactive, color: colors.textSecondary }]}>Your list</Text>
-                    <Text style={[activeTab === "active" ? { ...styles.tabCountActive, color: colors.primary } : { ...styles.tabCountInactive, color: colors.textSecondary }]}>
-                        {activeItems.length} Items
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity onPress={() => setActiveTab("completed")}>
-                    <Text style={[activeTab === "completed" ? { ...styles.tabActive, color: colors.primary } : { ...styles.tabInactive, color: colors.textSecondary }]}>Completed Items</Text>
-                    <Text style={[activeTab === "completed" ? { ...styles.tabCountActive, color: colors.primary } : { ...styles.tabCountInactive, color: colors.textSecondary }]}>
-                        {completedItems.length} Items
-                    </Text>
-                </TouchableOpacity>
-            </View>
+           
 
             {/* Render only the selected tab items */}
             {activeTab === "active" &&
@@ -523,7 +525,7 @@ export default function ListDetailScreen() {
                         >
                             {/* Header row */}
                             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 15 }}>
-                                <Text style={{ fontWeight: "bold", fontSize: 26, flex: 1, marginRight: 10 }}>
+                                <Text style={{ fontWeight: "bold", fontSize: 26, flex: 1, marginRight: 10, color: colors.text }}>
                                     {editingItem?.name}
                                 </Text>
 
@@ -578,7 +580,14 @@ export default function ListDetailScreen() {
                                         >
                                         <View pointerEvents="none">
                                             <TextInput
-                                            style={styles.inputBoxText}
+                                           style={[
+                                                styles.inputBoxText,
+                                                {
+                                                    backgroundColor: colors.surface,
+                                                    color: colors.text,
+                                                    borderColor: colors.border
+                                                }
+                                            ]}
                                             value={editedValues.expirationDate ?? ""}
                                             editable={false}
                                             />
@@ -893,23 +902,21 @@ const styles = StyleSheet.create({
         marginLeft: 2,
     },    
      datePickerOverlay: {
-  flex: 1,
-  justifyContent: "flex-end",
-  backgroundColor: "rgba(0,0,0,0.01)",
-},
-datePickerContainer: {
-  backgroundColor: "#fff",
-  borderTopLeftRadius: 20,
-  borderTopRightRadius: 20,
-  paddingVertical: 20,
-  paddingHorizontal: 18,
-},
-datePickerHeader: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: 10,
-},
-
-
+        flex: 1,
+        justifyContent: "flex-end",
+        backgroundColor: "rgba(0,0,0,0.01)",
+    },
+        datePickerContainer: {
+        backgroundColor: "#fff",
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        paddingVertical: 20,
+        paddingHorizontal: 18,
+    },
+        datePickerHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 10,
+    },
 });

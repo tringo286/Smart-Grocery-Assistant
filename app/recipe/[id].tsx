@@ -1,5 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { getAuth } from "firebase/auth";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -11,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
+import { firestore } from "../../firebaseConfig";
 import { getThemeColors } from "../../theme/colors";
 
 export default function RecipeDetailsScreen() {
@@ -20,39 +23,81 @@ export default function RecipeDetailsScreen() {
   const colors = getThemeColors(isDark);
   const [meal, setMeal] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [pantryItems, setPantryItems] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchMeal() {
+      const maxRetries = 3;
+      let attempt = 0;
+
+      while (attempt < maxRetries) {
+        try {
+          const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`);
+          if (res.status === 429) {
+            attempt++;
+            console.warn(`Rate limited. Retrying in 1s... (Attempt ${attempt})`);
+            await new Promise(r => setTimeout(r, 1000));
+            continue;
+          }
+          if (!res.ok) {
+            console.error(`API returned status ${res.status}`);
+            setMeal(null);
+            setLoading(false);
+            return;
+          }
+          const data = await res.json();
+          if (data.meals && data.meals.length > 0) {
+            setMeal(data.meals[0]);
+          } else {
+            setMeal(null);
+          }
+          setLoading(false);
+          return;
+        } catch (err) {
+          console.error("Error fetching meal details:", err);
+          setMeal(null);
+          setLoading(false);
+          return;
+        }
+      }
+
+      console.error("Failed to fetch meal after multiple attempts due to rate limit.");
+      setMeal(null);
+      setLoading(false);
+    }
+
+    fetchMeal(); 
+  }, [id]);
+
+
+  useEffect(() => {
+    async function fetchPantry() {
       try {
-        const res = await fetch(
-          `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`
-        );
-        if (!res.ok) {
-          console.error(`API returned status ${res.status}`);
-          setMeal(null);
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        if (!user) {
+          console.warn("User not logged in, cannot fetch pantry items.");
           return;
         }
-        const contentType = res.headers.get("content-type");
-        if (!contentType?.includes("application/json")) {
-          console.error(`Expected JSON but got ${contentType}`);
-          setMeal(null);
-          return;
-        }
-        const data = await res.json();
-        if (data.meals && data.meals.length > 0) {
-          setMeal(data.meals[0]);
-        } else {
-          setMeal(null);
-        }
+
+        // Query pantry items for this user
+        const pantryCol = collection(firestore, "pantry");
+        const q = query(pantryCol, where("userId", "==", user.uid));
+        const snapshot = await getDocs(q);
+
+        const pantryNames = snapshot.docs
+          .map(doc => doc.data().name?.toLowerCase())
+          .filter(Boolean); // remove undefined/null
+
+        setPantryItems(pantryNames);
       } catch (err) {
-        console.error("Error fetching meal details:", err);
-        setMeal(null);
-      } finally {
-        setLoading(false);
+        console.error("Error fetching pantry items:", err);
       }
     }
-    fetchMeal();
-  }, [id]);
+
+    fetchPantry();
+}, []);
 
   if (loading) {
     return (
@@ -99,11 +144,23 @@ export default function RecipeDetailsScreen() {
       {/* Info Card */}
       <View style={[styles.contentCard, { backgroundColor: colors.card }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Ingredients</Text>
-        {ingredients.map((item, idx) => (
-          <Text key={idx} style={[styles.ingredientText, { color: colors.text }]}>
-            • {item.ingredient} — {item.measure}
-          </Text>
-        ))}
+        {ingredients.map((item, idx) => {
+          const isInPantry = pantryItems.includes(item.ingredient.toLowerCase());
+          return (
+            <Text
+              key={idx}
+              style={[
+                styles.ingredientText,
+                { 
+                  color: isInPantry ? "#22c55e" : colors.text, // green if in pantry
+                  fontWeight: isInPantry ? "600" : "400",
+                }
+              ]}
+            >
+              • {item.ingredient} — {item.measure} {isInPantry ? "(In Pantry)" : ""}
+            </Text>
+          );
+        })}
 
         <Text style={[styles.sectionTitle, { marginTop: 18, color: colors.text }]}>
           Instructions

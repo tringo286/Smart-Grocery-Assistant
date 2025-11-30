@@ -41,10 +41,15 @@ export default function RecipesScreen() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [pantryItems, setPantryItems] = useState<{ name: string; expirationDate: string | null }[]>([]);
-
   const [recipes, setRecipes] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  // Fetch pantry items from Firestore for current user
+  const [tooltip, setTooltip] = useState<{ visible: boolean; text: string; position: { x: number; y: number } | null }>({
+    visible: false,
+    text: "",
+    position: null,
+  });
+
+  // Fetch pantry items from Firestore
   useEffect(() => {
     async function fetchPantry() {
       const user = auth.currentUser;
@@ -239,13 +244,10 @@ export default function RecipesScreen() {
 
   return matchedExpiring.length > 0;
 }
-
-
     default:
       return true;
   }
 });
-
 
 // Search logic
   const searchedRecipes = search
@@ -282,6 +284,14 @@ export default function RecipesScreen() {
               activeFilter !== f.key && { backgroundColor: colors.surface, borderColor: colors.border }
             ]}
             onPress={() => setActiveFilter(f.key)}
+            onLongPress={e => {
+              let tooltipText = "";
+              if (f.key === "pantry") tooltipText = "Recipes using more than half of your pantry ingredients.";
+              if (f.key === "expiring") tooltipText = "Recipes using ingredients\nexpiring in the next 7 days.";
+              const { pageX, pageY } = e.nativeEvent;
+              setTooltip({ visible: true, text: tooltipText, position: { x: pageX, y: pageY } });
+              setTimeout(() => setTooltip(prev => ({ ...prev, visible: false })), 2500); // auto-hide after 2.5s
+            }}
           >
             <Text
               style={[
@@ -327,6 +337,21 @@ export default function RecipesScreen() {
             </TouchableOpacity>
           ))}
         </ScrollView>
+      )}
+
+      {tooltip.visible && tooltip.position && (
+        <View
+          style={[
+            styles.tooltip,
+            {
+              top: tooltip.position.y + 10, // offset slightly below finger
+              left: tooltip.position.x - 120 / 2, // center horizontally
+              backgroundColor: colors.card,
+            },
+          ]}
+        >
+          <Text style={[styles.tooltipText, { color: colors.text }]}>{tooltip.text}</Text>
+        </View>
       )}
 
       {/* Bottom Tab Bar */}
@@ -417,4 +442,20 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   recipeSubText: { fontSize: 15, color: "#777" },
+    tooltip: {
+    position: "absolute",
+    padding: 8,
+    borderRadius: 8,
+    width: 240,
+    zIndex: 999,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  tooltipText: {
+    fontSize: 14,
+    textAlign: "center",
+  },
 });

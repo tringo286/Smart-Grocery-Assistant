@@ -153,13 +153,13 @@ export default function AccountScreen() {
           <Text style={[styles.cardText, { color: colors.text }]}>Change password</Text>
           <Feather name="chevron-right" size={24} color={colors.textSecondary} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.cardItem} onPress={handleLogout}>
+         <TouchableOpacity style={[styles.cardItem, { borderBottomColor: "transparent" }]} onPress={handleLogout}>
           <Text style={[styles.cardText, { color: colors.text }]}>Log out</Text>
           <Feather name="log-out" size={22} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
       {/* Delete Account */}
-      <View style={styles.deleteContainer}>
+      <View style={[styles.deleteContainer, { backgroundColor: colors.surface }]}>
         <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount}>
           <Text style={styles.deleteText}>Delete account</Text>
           <MaterialIcons name="delete" size={24} color="#dc3545" />
@@ -234,7 +234,6 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   deleteButton: {
-    backgroundColor: "#fff",
     borderRadius: 10,
     flexDirection: "row",
     alignItems: "center",
