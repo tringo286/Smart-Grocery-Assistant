@@ -57,14 +57,25 @@ export default function ListDetailScreen() {
         if (!id) return;
         const listRef = doc(firestore, "lists", id);
         // Subscribe to real-time updates for the list document
-        const unsubscribe = onSnapshot(listRef, (listSnap) => {
-            if (listSnap.exists()) {
-                const data = listSnap.data();
-                setListItems(data.items || []);
-                setListName(data.name || "Unnamed List");
+        const unsubscribe = onSnapshot(
+            listRef,
+            (listSnap) => {
+                if (listSnap.exists()) {
+                    const data = listSnap.data();
+                    setListItems(data.items || []);
+                    setListName(data.name || "Unnamed List");
+                }
+                setIsLoading(false);
+            },
+            (error) => {
+                // Handle permission denied errors silently (e.g., after logout)
+                if (error.code === 'permission-denied') {
+                    return;
+                }
+                console.error("Error fetching list:", error);
+                setIsLoading(false);
             }
-            setIsLoading(false);
-        });
+        );
         // Clean up the subscriber when component unmounts or id changes
         return () => unsubscribe();
     }, [id]);
