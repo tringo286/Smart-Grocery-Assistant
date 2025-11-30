@@ -59,22 +59,32 @@ export default function PantryScreen() {
     const pantryCol = collection(firestore, "pantry");
     const q = query(pantryCol, where("userId", "==", user.uid));
     
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setPantryItems(
-        snapshot.docs.map(
-          (doc) =>
-            ({
-              id: doc.id,
-              name: doc.data().name,
-              category: doc.data().category,
-              quantity: doc.data().quantity || "",
-              unit: doc.data().unit || "",
-              price: doc.data().price || "",
-              expirationDate: doc.data().expirationDate || "",
-            }) as Item
-        )
-      );
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        setPantryItems(
+          snapshot.docs.map(
+            (doc) =>
+              ({
+                id: doc.id,
+                name: doc.data().name,
+                category: doc.data().category,
+                quantity: doc.data().quantity || "",
+                unit: doc.data().unit || "",
+                price: doc.data().price || "",
+                expirationDate: doc.data().expirationDate || "",
+              }) as Item
+          )
+        );
+      },
+      (error) => {
+        // Handle permission denied errors silently (e.g., after logout)
+        if (error.code === 'permission-denied') {
+          return;
+        }
+        console.error("Error fetching pantry items:", error);
+      }
+    );
     return () => unsubscribe();
   }, []);
 

@@ -88,61 +88,72 @@ export default function SummaryScreen() {
     const pantryCol = collection(firestore, "pantry");
     const q = query(pantryCol, where("userId", "==", user.uid));
     
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const allItems = snapshot.docs.map(
-        (doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }) as PantryItem
-      );
-      
-      setPantryItems(allItems);
-      
-      // Calculate current period expenses
-      const { startDate, endDate } = getBudgetPeriod();
-      
-      const currentPeriodItems = allItems.filter(item => {
-        const itemDate = item.dateAdded.toDate();
-        return itemDate >= startDate && itemDate <= endDate;
-      });
-      
-      const total = currentPeriodItems.reduce((sum, item) => {
-        const price = parseFloat(item.price.replace(/[^0-9.]/g, "")) || 0;
-        return sum + price;
-      }, 0);
-      setTotalExpenses(total);
-
-      // Calculate expenses by category for current period
-      const categoryTotals: { [key: string]: number } = {};
-      currentPeriodItems.forEach((item) => {
-        const price = parseFloat(item.price.replace(/[^0-9.]/g, "")) || 0;
-        if (!categoryTotals[item.category]) {
-          categoryTotals[item.category] = 0;
-        }
-        categoryTotals[item.category] += price;
-      });
-      setCategoryExpenses(categoryTotals);
-
-      // Calculate monthly expenses for last 6 periods
-      const monthlyTotals: number[] = [];
-      for (let i = 5; i >= 0; i--) {
-        const refDate = new Date();
-        refDate.setMonth(refDate.getMonth() - i);
-        const period = getBudgetPeriod(refDate);
+    const unsubscribe = onSnapshot(
+      q, 
+      (snapshot) => {
+        const allItems = snapshot.docs.map(
+          (doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }) as PantryItem
+        );
         
-        const periodItems = allItems.filter(item => {
+        setPantryItems(allItems);
+        
+        // Calculate current period expenses
+        const { startDate, endDate } = getBudgetPeriod();
+        
+        const currentPeriodItems = allItems.filter(item => {
           const itemDate = item.dateAdded.toDate();
-          return itemDate >= period.startDate && itemDate <= period.endDate;
+          return itemDate >= startDate && itemDate <= endDate;
         });
         
-        const periodTotal = periodItems.reduce((sum, item) => {
+        const total = currentPeriodItems.reduce((sum, item) => {
           const price = parseFloat(item.price.replace(/[^0-9.]/g, "")) || 0;
           return sum + price;
         }, 0);
-        monthlyTotals.push(periodTotal);
+        setTotalExpenses(total);
+
+        // Calculate expenses by category for current period
+        const categoryTotals: { [key: string]: number } = {};
+        currentPeriodItems.forEach((item) => {
+          const price = parseFloat(item.price.replace(/[^0-9.]/g, "")) || 0;
+          if (!categoryTotals[item.category]) {
+            categoryTotals[item.category] = 0;
+          }
+          categoryTotals[item.category] += price;
+        });
+        setCategoryExpenses(categoryTotals);
+
+        // Calculate monthly expenses for last 6 periods
+        const monthlyTotals: number[] = [];
+        for (let i = 5; i >= 0; i--) {
+          const refDate = new Date();
+          refDate.setMonth(refDate.getMonth() - i);
+          const period = getBudgetPeriod(refDate);
+          
+          const periodItems = allItems.filter(item => {
+            const itemDate = item.dateAdded.toDate();
+            return itemDate >= period.startDate && itemDate <= period.endDate;
+          });
+          
+          const periodTotal = periodItems.reduce((sum, item) => {
+            const price = parseFloat(item.price.replace(/[^0-9.]/g, "")) || 0;
+            return sum + price;
+          }, 0);
+          monthlyTotals.push(periodTotal);
+        }
+        setMonthlyExpenses(monthlyTotals);
+      },
+      (error) => {
+        // Handle permission denied errors silently (e.g., after logout)
+        if (error.code === 'permission-denied') {
+          // User logged out, listener will be cleaned up
+          return;
+        }
+        console.error("Error fetching pantry items:", error);
       }
-      setMonthlyExpenses(monthlyTotals);
-    });
+    );
 
     return () => unsubscribe();
   }, [getBudgetPeriod]);

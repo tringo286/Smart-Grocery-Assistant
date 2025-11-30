@@ -127,22 +127,32 @@ export default function ListsScreen() {
       orderBy("createdAt", "desc") // Order by creation date
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setLists(
-        snapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            name: data.name,
-            createdAt: data.createdAt instanceof Timestamp
-              ? data.createdAt.toDate() // Convert Firestore Timestamp to JavaScript Date
-              : new Date(data.createdAt), // Handle case if it's already a JavaScript Date
-            userId: data.userId,
-            itemsCount: data.items ? data.items.length : 0,
-          };
-        })
-      );
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        setLists(
+          snapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              name: data.name,
+              createdAt: data.createdAt instanceof Timestamp
+                ? data.createdAt.toDate() // Convert Firestore Timestamp to JavaScript Date
+                : new Date(data.createdAt), // Handle case if it's already a JavaScript Date
+              userId: data.userId,
+              itemsCount: data.items ? data.items.length : 0,
+            };
+          })
+        );
+      },
+      (error) => {
+        // Handle permission denied errors silently (e.g., after logout)
+        if (error.code === 'permission-denied') {
+          return;
+        }
+        console.error("Error fetching lists:", error);
+      }
+    );
 
     return () => unsubscribe(); // Cleanup on unmount
   }, []);
